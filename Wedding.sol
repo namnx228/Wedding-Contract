@@ -1,3 +1,4 @@
+pragma experimental ABIEncoderV2;
 pragma solidity >=0.4.0 <0.7.0;
 contract Wedding{
     string eventName;
@@ -7,9 +8,11 @@ contract Wedding{
     string weddingStatus; //{Pending / Completed / Terminated }
     uint256 weddingTime;
     string objectionStatus;
+
     mapping (uint256 => uint256) ticketMapping;
     mapping (uint256 => uint256) couponMapping;
     string private constant ticket = "123yc346tb349v3";
+
     struct Guest{
         string name;
         string email;
@@ -27,6 +30,7 @@ contract Wedding{
     Guest[] listOfGuest;
     Objection object;
     uint256 constant NULL = uint256(0);
+    /*
     constructor() public {
         eventName = "Khiem - Ngoc wedding";
         husbandName = "Khiem";
@@ -73,9 +77,50 @@ contract Wedding{
             ticketMapping[providedName] = listOfGuest[uint256(matched)].ticket;
             //return listOfGuest[uint256(matched)].ticket;
             //return guestTicket(uint256(matched));
+=======
+        listOfGuest = createGuestList();
+        // object = NULL; 
+    }
+    */
+    constructor(Guest[] memory guestList ) public {
+        eventName = "Khiem - Ngoc wedding";
+        husbandName = "Khiem";
+        wifeName = "Ngoc";
+        location = "WC";
+        weddingStatus = "Pending";
+        weddingTime = 1572047999;
+        for(uint i = 0; i < guestList.length; i++){
+            listOfGuest.push(guestList[i]);
+        }
+        ticketGeneration();
+        couponGeneration();
+    }
+    // function createGuestList() private returns(Guest[] storage){
+    //   // create new user
+    //   // add to array
+    //   Guest memory newGuest=Guest({name: "Arnab", ticket: NULL, couponCode: NULL,  email: "arnab@gmail.com", etherumAddress: 0x81549c1746d2Ce0ACd15470104EBc62B7a104fa6, decision: false});
+    //   listOfGuest.push(newGuest);
+    //   newGuest=Guest({name: "Nam", ticket: NULL, couponCode: NULL,  email: "nam@gmail.com", etherumAddress: 0x671afec674940d292804Ecfd7A2AeAbE2bD3f1a0, decision: false});
+    //   listOfGuest.push(newGuest);
+    //   newGuest=Guest({name: "Shamim", ticket: NULL, couponCode: NULL,  email: "shamim@gmail.com", etherumAddress: 0x671afec674940d292804Ecfd7A2AeAbE2bD3f1a0, decision: false});
+    //   listOfGuest.push(newGuest);
+    //   return listOfGuest;
+    // }
+    
+    // Accept function
+    function accept(string memory name, uint256 couponCode) public {
+        // hash provided name
+        uint256 providedName = uint256(sha256(abi.encodePacked(name)));
+
+        int matched = authenticate(providedName, couponCode);
+        if (matched != -1){
+            listOfGuest[uint256(matched)].decision = true;
+            ticketMapping[providedName] = listOfGuest[uint256(matched)].ticket;
+            //return listOfGuest[uint256(matched)].ticket;
+            //return guestTicket(uint256(matched));
         }
     }
-    
+
     // Reject function
     function reject(string memory name, uint256 couponCode) public {
         // hash provided name
@@ -116,6 +161,21 @@ contract Wedding{
         }
     }
 
+     function getGuestList() view public returns(Guest[] memory){
+       return listOfGuest;
+
+    }
+    //function createGuestList() private returns (Guest[]);
+    //function authenticate(string name, string code) private;
+    //function ticketGeneration() private;
+    //function couponGeneration() private;
+    //function accept(string name, string couponCode) public;
+    //function reject(string name, string couponCode) public;
+    //function login(string name, string ticket) public;
+    //function opposeWedding(string reason, string name, string couponCode ) public; // check objectionStatus
+    ////------------------------------------------------ Optional part-----------------------------------
+    //function objectionVoting(string name, string couponCode, bool wannaStop) public;
+
     // show guest ticket details
     function guestTicket(string memory name) view public returns (uint256){
         uint256 providedName = uint256(sha256(abi.encodePacked(name)));
@@ -138,4 +198,7 @@ contract Wedding{
     
     
 
-}
+         
+     }
+
+
