@@ -7,11 +7,10 @@ contract Wedding{
     string weddingStatus; //{Pending / Completed / Terminated }
     uint256 weddingTime;
     string objectionStatus;
-    string private constant ticket = "123yc346tb349v3";
     struct Guest{
         string name;
         string email;
-        string couponCode;
+        uint256 couponCode;
         uint256 ticket;
         bool decision;
         address etherumAddress;
@@ -38,11 +37,14 @@ contract Wedding{
     function createGuestList() private return(Guest[] memory guestList){
       // create new user
       // add to array
-      Guest memory newGuest=Guest({name: "Arnab", ticket: ticket, email: "arnab@gmail.com", address: 0x81549c1746d2Ce0ACd15470104EBc62B7a104fa6});
+      Guest memory newGuest=Guest({name: "Arnab", ticket: NULL, couponCode: NULL,  email: "arnab@gmail.com", address: 0x81549c1746d2Ce0ACd15470104EBc62B7a104fa6});
       guestList.push();
-      Guest memory newGuest=Guest({name: "Nam", ticket: ticket, email: "nam@gmail.com", address: 0x671afec674940d292804Ecfd7A2AeAbE2bD3f1a0});
+      Guest memory newGuest=Guest({name: "Nam", ticket: NULL, couponCode: NULL,  email: "nam@gmail.com", address: 0x671afec674940d292804Ecfd7A2AeAbE2bD3f1a0});
+      guestList.push();
+      Guest memory newGuest=Guest({name: "Shamim", ticket: NULL, couponCode: NULL,  email: "shamim@gmail.com", address: 0x671afec674940d292804Ecfd7A2AeAbE2bD3f1a0});
       guestList.push();
       return guestList;
+
     }
     function createGuestList() private;
     function authenticate(string name, string code) private;
