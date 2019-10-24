@@ -1,4 +1,5 @@
 pragma solidity >=0.4.0 <0.7.0;
+//pragma experimental ABIEncoderV2;
 contract Wedding{
     string eventName;
     string husbandName;
@@ -32,48 +33,30 @@ contract Wedding{
         weddingStatus = "Pending";
         weddingTime = 1572047999;
         listOfGuest = createGuestList();
-        object = NULL; 
+        // object = NULL; 
     }
-    function createGuestList() private return(Guest[] memory guestList){
+    function createGuestList() private returns(Guest[] storage){
       // create new user
       // add to array
-      Guest memory newGuest=Guest({name: "Arnab", ticket: NULL, couponCode: NULL,  email: "arnab@gmail.com", address: 0x81549c1746d2Ce0ACd15470104EBc62B7a104fa6});
-      guestList.push();
-      Guest memory newGuest=Guest({name: "Nam", ticket: NULL, couponCode: NULL,  email: "nam@gmail.com", address: 0x671afec674940d292804Ecfd7A2AeAbE2bD3f1a0});
-      guestList.push();
-      Guest memory newGuest=Guest({name: "Shamim", ticket: NULL, couponCode: NULL,  email: "shamim@gmail.com", address: 0x671afec674940d292804Ecfd7A2AeAbE2bD3f1a0});
-      guestList.push();
-      return guestList;
-
+      Guest memory newGuest=Guest({name: "Arnab", ticket: NULL, couponCode: NULL,  email: "arnab@gmail.com", etherumAddress: 0x81549c1746d2Ce0ACd15470104EBc62B7a104fa6, decision: false});
+      listOfGuest.push(newGuest);
+      newGuest=Guest({name: "Nam", ticket: NULL, couponCode: NULL,  email: "nam@gmail.com", etherumAddress: 0x671afec674940d292804Ecfd7A2AeAbE2bD3f1a0, decision: false});
+      listOfGuest.push(newGuest);
+      newGuest=Guest({name: "Shamim", ticket: NULL, couponCode: NULL,  email: "shamim@gmail.com", etherumAddress: 0x671afec674940d292804Ecfd7A2AeAbE2bD3f1a0, decision: false});
+      listOfGuest.push(newGuest);
+      return listOfGuest;
     }
-    function createGuestList() private;
-    function authenticate(string name, string code) private;
-    function ticketGeneration() private;
-    function couponGeneration() private;
-    function accept(string name, string couponCode) public;
-    function reject(string name, string couponCode) public;
-    function login(string name, string ticket) public;
-    function opposeWedding(string reason, string name, string couponCode ) public; // check objectionStatus
-    //------------------------------------------------ Optional part-----------------------------------
-    function objectionVoting(string name, string couponCode, bool wannaStop) public;
-    
-
-    // Accept function
-    function accept(string name, string couponCode) returns (string){
-
-    }
-    
-    function ticketGeneration() private {
-        for (uint256 i = 0; i < listOfGuest.length ; i++){
-            listOfGuest[i].ticket = random();
-        }
-    }
-
-    // random number generation
-    function random() private view returns (uint32) {
-        return uint32(uint256(keccak256(block.timestamp, block.difficulty))%4294967295);
-    }
-    
-    
-
+    // function getGuestList() view public returns(Guest[]){
+    //   return listOfGuest;
+    // }
+    //function createGuestList() private returns (Guest[]);
+    //function authenticate(string name, string code) private;
+    //function ticketGeneration() private;
+    //function couponGeneration() private;
+    //function accept(string name, string couponCode) public;
+    //function reject(string name, string couponCode) public;
+    //function login(string name, string ticket) public;
+    //function opposeWedding(string reason, string name, string couponCode ) public; // check objectionStatus
+    ////------------------------------------------------ Optional part-----------------------------------
+    //function objectionVoting(string name, string couponCode, bool wannaStop) public;
 }
