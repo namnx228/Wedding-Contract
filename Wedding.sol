@@ -7,11 +7,13 @@ contract Wedding{
     string weddingStatus; //{Pending / Completed / Terminated }
     uint256 weddingTime;
     string objectionStatus;
+    mapping (uint256 => uint256) ticketMapping;
+    mapping (uint256 => uint256) couponMapping;
     string private constant ticket = "123yc346tb349v3";
     struct Guest{
         string name;
         string email;
-        string couponCode;
+        uint256 couponCode;
         uint256 ticket;
         bool decision;
         address etherumAddress;
@@ -32,44 +34,106 @@ contract Wedding{
         location = "WC";
         weddingStatus = "Pending";
         weddingTime = 1572047999;
-        listOfGuest = createGuestList();
-        object = NULL; 
+        createGuestList();
+        ticketGeneration();
+        couponGeneration();
+        //object = NULL;
     }
-    function createGuestList() private return(Guest[] memory guestList){
+    
+    function createGuestList() private {
       // create new user
       // add to array
-      Guest memory newGuest=Guest({name: "Arnab", ticket: ticket, email: "arnab@gmail.com", address: 0x81549c1746d2Ce0ACd15470104EBc62B7a104fa6});
-      guestList.push();
-      Guest memory newGuest=Guest({name: "Nam", ticket: ticket, email: "nam@gmail.com", address: 0x671afec674940d292804Ecfd7A2AeAbE2bD3f1a0});
-      guestList.push();
-      return guestList;
+      //Guest[] memory guestList;
+      Guest memory newGuest=Guest({couponCode: NULL, decision: true, name: "Arnab", ticket: NULL, email: "arnab@gmail.com", etherumAddress: 0x81549c1746d2Ce0ACd15470104EBc62B7a104fa6});
+      listOfGuest.push(newGuest);
+      newGuest=Guest({couponCode: NULL, decision: true, name: "Nam", ticket: NULL, email: "nam@gmail.com", etherumAddress: 0x671afec674940d292804Ecfd7A2AeAbE2bD3f1a0});
+      listOfGuest.push(newGuest);
     }
-    function createGuestList() private;
-    function authenticate(string name, string code) private;
-    function ticketGeneration() private;
-    function couponGeneration() private;
-    function accept(string name, string couponCode) public;
-    function reject(string name, string couponCode) public;
-    function login(string name, string ticket) public;
-    function opposeWedding(string reason, string name, string couponCode ) public; // check objectionStatus
+    
+    //function createGuestList() private returns (Guest[]);
+    //function authenticate(string name, string code) private;
+    //function ticketGeneration() public;
+    //function couponGeneration() private;
+    //function accept(string name, string couponCode) public;
+    //function reject(string name, string couponCode) public;
+    //function login(string name, string ticket) public;
+    //function opposeWedding(string reason, string name, string couponCode ) public; // check objectionStatus
     //------------------------------------------------ Optional part-----------------------------------
-    function objectionVoting(string name, string couponCode, bool wannaStop) public;
+    //function objectionVoting(string name, string couponCode, bool wannaStop) public;
     
 
     // Accept function
-    function accept(string name, string couponCode) returns (string){
+    function accept(string memory name, uint256 couponCode) public {
+        // hash provided name
+        uint256 providedName = uint256(sha256(abi.encodePacked(name)));
 
+        int matched = authenticate(providedName, couponCode);
+        if (matched != -1){
+            listOfGuest[uint256(matched)].decision = true;
+            ticketMapping[providedName] = listOfGuest[uint256(matched)].ticket;
+            //return listOfGuest[uint256(matched)].ticket;
+            //return guestTicket(uint256(matched));
+        }
     }
     
-    function ticketGeneration() private {
-        for (uint256 i = 0; i < listOfGuest.length ; i++){
-            listOfGuest[i].ticket = random();
+    // Reject function
+    function reject(string memory name, uint256 couponCode) public {
+        // hash provided name
+        uint256 providedName = uint256(sha256(abi.encodePacked(name)));
+        int matched = authenticate(providedName, couponCode);
+        if (matched != -1){
+            listOfGuest[uint256(matched)].decision = false;
+        }
+    }
+    
+    // Authentication (Accept/Reject)
+    function authenticate(uint256 namehash, uint256 code) private view returns (int){
+        for (uint8 i=0; i<listOfGuest.length; i++){
+            uint256 guestName = uint256(sha256(abi.encodePacked(listOfGuest[i].name)));
+            if((namehash == guestName) && (listOfGuest[i].couponCode == code)){
+                return i;
+            }else{
+                return -1;
+            }
         }
     }
 
+    // ticket generation
+    function ticketGeneration() private {
+        for (uint256 i = 0; i < listOfGuest.length ; i++){
+            //uint256 providedName = uint256(sha256(abi.encodePacked(listOfGuest[i].name)));
+            listOfGuest[i].ticket = random(i,"ticket");
+            //ticketMapping[providedName] = listOfGuest[i].ticket;
+        }
+    }
+    
+    // coupon generation
+    function couponGeneration() private {
+        for (uint256 i = 0; i < listOfGuest.length ; i++){
+            uint256 providedName = uint256(sha256(abi.encodePacked(listOfGuest[i].name)));
+            listOfGuest[i].couponCode = random(i,"coupon");
+            couponMapping[providedName] = listOfGuest[i].couponCode;
+        }
+    }
+
+    // show guest ticket details
+    function guestTicket(string memory name) view public returns (uint256){
+        uint256 providedName = uint256(sha256(abi.encodePacked(name)));
+        return ticketMapping[providedName];
+    }
+    
+    // show guest coupon details
+    function guestCoupon(string memory name) view public returns (uint256){
+        uint256 providedName = uint256(sha256(abi.encodePacked(name)));
+        return couponMapping[providedName];
+    }
+    
     // random number generation
-    function random() private view returns (uint32) {
-        return uint32(uint256(keccak256(block.timestamp, block.difficulty))%4294967295);
+    function random(uint256 index, string memory ticket_coupon) private view returns (uint32) {
+        //return uint32(sha256(block.timestamp) % 4294967295);
+        string memory guestName = listOfGuest[index].name;
+        //return uint32(uint256(sha256(listOfGuest[index].name)) % 4294967295);
+        return uint32(uint256(sha256(abi.encodePacked(ticket_coupon, guestName))) % 4294967295);
     }
     
     
