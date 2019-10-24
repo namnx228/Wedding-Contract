@@ -12,7 +12,7 @@ contract Wedding{
         string name;
         string email;
         string couponCode;
-        string ticket;
+        uint256 ticket;
         bool decision;
         address etherumAddress;
     }
@@ -47,10 +47,31 @@ contract Wedding{
     function createGuestList() private;
     function authenticate(string name, string code) private;
     function ticketGeneration() private;
+    function couponGeneration() private;
     function accept(string name, string couponCode) public;
     function reject(string name, string couponCode) public;
     function login(string name, string ticket) public;
     function opposeWedding(string reason, string name, string couponCode ) public; // check objectionStatus
     //------------------------------------------------ Optional part-----------------------------------
     function objectionVoting(string name, string couponCode, bool wannaStop) public;
+    
+
+    // Accept function
+    function accept(string name, string couponCode) returns (string){
+
+    }
+    
+    function ticketGeneration() private {
+        for (uint256 i = 0; i < listOfGuest.length ; i++){
+            listOfGuest[i].ticket = random();
+        }
+    }
+
+    // random number generation
+    function random() private view returns (uint32) {
+        return uint32(uint256(keccak256(block.timestamp, block.difficulty))%4294967295);
+    }
+    
+    
+
 }
