@@ -17,6 +17,11 @@ contract Wedding{
         uint256 objectionDate;
         uint8 numOfVote;
     }
+    enum ObjectionStatus {
+        Pending,
+        Completed,
+        Rejected
+    }
 
     string eventName;
     string husbandName;
@@ -31,7 +36,7 @@ contract Wedding{
     
     Guest[] listOfGuest;
     
-    string objectionStatus;
+    ObjectionStatus objectionStatus;
     Objection object;
 
     /*
@@ -189,7 +194,14 @@ contract Wedding{
         return uint32(uint256(sha256(abi.encodePacked(ticket_coupon, guestName))) % 4294967295);
     }
     
-    function opposeWedding(string reason, string name, string couponCode) public {
+    function opposeWedding(string memory reason, string memory name, uint256 couponCode) public {
+        uint256 providedName = uint256(sha256(abi.encodePacked(name)));
+        if (authenticate(providedName, couponCode) != -1) {
+            object = Objection({reason: reason, postedPersonName: name, objectionDate: now, numOfVote: 0});
+            objectionStatus = ObjectionStatus.Pending;
+            
+            weddingStatus = "Terminated";
+        }
     }
 
 
