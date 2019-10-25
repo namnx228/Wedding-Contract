@@ -9,8 +9,8 @@ contract Wedding{
     uint256 weddingTime;
     string objectionStatus;
 
-    mapping (uint256 => uint256) ticketMapping;
-    mapping (uint256 => uint256) couponMapping;
+    mapping (string => uint256) ticketMapping;
+    mapping (string => uint256) couponMapping;
     string private constant ticket = "123yc346tb349v3";
 
     struct Guest{
@@ -107,35 +107,41 @@ contract Wedding{
     //   return listOfGuest;
     // }
     
+    
     // Accept function
     function accept(string memory name, uint256 couponCode) public {
         // hash provided name
-        uint256 providedName = uint256(sha256(abi.encodePacked(name)));
-
-        int matched = authenticate(providedName, couponCode);
-        if (matched != -1){
-            listOfGuest[uint256(matched)].decision = true;
-            ticketMapping[providedName] = listOfGuest[uint256(matched)].ticket;
-            //return listOfGuest[uint256(matched)].ticket;
-            //return guestTicket(uint256(matched));
+        //uint256 providedName = uint256(sha256(abi.encodePacked(name)));
+        if(compareStrings(weddingStatus,"Pending")){
+            //int matched = authenticate(providedName, couponCode);
+            int matched = authenticate(name, couponCode);
+            if (matched != -1){
+                listOfGuest[uint256(matched)].decision = true;
+                //ticketMapping[providedName] = listOfGuest[uint256(matched)].ticket;
+                ticketMapping[name] = listOfGuest[uint256(matched)].ticket;
+                //return listOfGuest[uint256(matched)].ticket;
+                //return guestTicket(uint256(matched));
+            }
         }
     }
 
     // Reject function
     function reject(string memory name, uint256 couponCode) public {
         // hash provided name
-        uint256 providedName = uint256(sha256(abi.encodePacked(name)));
-        int matched = authenticate(providedName, couponCode);
-        if (matched != -1){
-            listOfGuest[uint256(matched)].decision = false;
+        //uint256 providedName = uint256(sha256(abi.encodePacked(name)));
+        if(compareStrings(weddingStatus,"Pending")){
+            int matched = authenticate(name, couponCode);
+            if (matched != -1){
+                listOfGuest[uint256(matched)].decision = false;
+            }
         }
     }
     
     // Authentication (Accept/Reject)
-    function authenticate(uint256 namehash, uint256 code) private view returns (int){
+    function authenticate(string memory name, uint256 code) private returns (int){
         for (uint8 i=0; i<listOfGuest.length; i++){
-            uint256 guestName = uint256(sha256(abi.encodePacked(listOfGuest[i].name)));
-            if((namehash == guestName) && (listOfGuest[i].couponCode == code)){
+            //uint256 guestName = uint256(sha256(abi.encodePacked(listOfGuest[i].name)));
+            if(compareStrings(name, listOfGuest[i].name) && (listOfGuest[i].couponCode == code)){
                 return i;
             }else{
                 return -1;
@@ -155,9 +161,9 @@ contract Wedding{
     // coupon generation
     function couponGeneration() private {
         for (uint256 i = 0; i < listOfGuest.length ; i++){
-            uint256 providedName = uint256(sha256(abi.encodePacked(listOfGuest[i].name)));
+            //uint256 providedName = uint256(sha256(abi.encodePacked(listOfGuest[i].name)));
             listOfGuest[i].couponCode = random(i,"coupon");
-            couponMapping[providedName] = listOfGuest[i].couponCode;
+            couponMapping[listOfGuest[i].name] = listOfGuest[i].couponCode;
         }
     }
 
@@ -178,14 +184,14 @@ contract Wedding{
 
     // show guest ticket details
     function guestTicket(string memory name) view public returns (uint256){
-        uint256 providedName = uint256(sha256(abi.encodePacked(name)));
-        return ticketMapping[providedName];
+        //uint256 providedName = uint256(sha256(abi.encodePacked(name)));
+        return ticketMapping[name];
     }
     
     // show guest coupon details
     function guestCoupon(string memory name) view public returns (uint256){
-        uint256 providedName = uint256(sha256(abi.encodePacked(name)));
-        return couponMapping[providedName];
+        //uint256 providedName = uint256(sha256(abi.encodePacked(name)));
+        return couponMapping[name];
     }
     
     // random number generation
@@ -194,6 +200,10 @@ contract Wedding{
         string memory guestName = listOfGuest[index].name;
         //return uint32(uint256(sha256(listOfGuest[index].name)) % 4294967295);
         return uint32(uint256(sha256(abi.encodePacked(ticket_coupon, guestName))) % 4294967295);
+    }
+    
+    function compareStrings (string memory a, string memory b) private returns (bool) {
+        return (keccak256(abi.encodePacked((a))) == keccak256(abi.encodePacked((b))) );
     }
     
     
