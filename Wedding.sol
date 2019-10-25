@@ -29,7 +29,6 @@ contract Wedding{
         PendingWithObjection
     }
 
-
     string eventName;
     string husbandName;
     string wifeName;
@@ -38,8 +37,7 @@ contract Wedding{
     uint weddingTimeStart;
     uint weddingTimeEnd;
     address coupleAddress;
-    address coupleAddress2;
-    
+    address coupleAddress2;    
 
     mapping (string => uint256) ticketMapping;
     mapping (string => uint256) couponMapping;
@@ -53,46 +51,6 @@ contract Wedding{
     Objection object;
     uint8 objectionVotingThreshold;
 
-    /*
-    constructor() public {
-        eventName = "Khiem - Ngoc wedding";
-        husbandName = "Khiem";
-        wifeName = "Ngoc";
-        location = "WC";
-        weddingStatus = "Pending";
-        weddingTimeStart = 1572010575; // 10/25/2019 -- 0:0:0
-        weddingTimeEnd = 1572010620; // 10/26/2019 -- 0:0:0
-        createGuestList();
-        ticketGeneration();
-        couponGeneration();
-        //object = NULL;
-    }
-    
-    function createGuestList() private {
-      // create new user
-      // add to array
-      //Guest[] memory guestList;
-      Guest memory newGuest=Guest({couponCode: NULL, decision: true, name: "Arnab", ticket: NULL, email: "arnab@gmail.com", etherumAddress: 0x81549c1746d2Ce0ACd15470104EBc62B7a104fa6});
-      listOfGuest.push(newGuest);
-      newGuest=Guest({couponCode: NULL, decision: true, name: "Nam", ticket: NULL, email: "nam@gmail.com", etherumAddress: 0x671afec674940d292804Ecfd7A2AeAbE2bD3f1a0});
-      listOfGuest.push(newGuest);
-    }
-
-    // Accept function
-    function accept(string memory name, uint256 couponCode) public {
-        // hash provided name
-        uint256 providedName = uint256(sha256(abi.encodePacked(name)));
-
-        int matched = authenticate(providedName, couponCode);
-        if (matched != -1){
-            listOfGuest[uint256(matched)].decision = true;
-            ticketMapping[providedName] = listOfGuest[uint256(matched)].ticket;
-            //return listOfGuest[uint256(matched)].ticket;
-            //return guestTicket(uint256(matched));
-        listOfGuest = createGuestList();
-        // object = NULL; 
-    }
-    */
     constructor(Guest[] memory guestList ) public {
         eventName = "Khiem - Ngoc wedding";
         husbandName = "Khiem";
@@ -321,7 +279,6 @@ contract Wedding{
         weddingStatus = WeddingStatus.Completed;
     }
 
-    
     function getCurrentVote(string memory name, uint256 couponCode) view public returns(int8, uint256) {
         int matched = authenticate(name, couponCode);
         
