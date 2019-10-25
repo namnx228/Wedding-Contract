@@ -38,6 +38,7 @@ contract Wedding{
     uint weddingTimeStart;
     uint weddingTimeEnd;
     address coupleAddress;
+    address coupleAddress2;
     
 
     mapping (string => uint256) ticketMapping;
@@ -105,6 +106,7 @@ contract Wedding{
         //coupleAddress = 0x86CEfcde6fb206629ea9D064Df31836EF1D1D648;
         
         coupleAddress = 0xCA35b7d915458EF540aDe6068dFe2F44E8fa733c; // Test address;
+        coupleAddress2 = 0xdD870fA1b7C4700F2BD7f44238821C26f7392148;
         
         for(uint i = 0; i < guestList.length; i++){
             listOfGuest.push(guestList[i]);
@@ -307,6 +309,18 @@ contract Wedding{
         
         return ("Hello outsider, thank you for playing with us!", "", 0);
     }
+    
+    modifier checkCoupleAddress(){
+      require(weddingStatus == WeddingStatus.Pending || weddingStatus == WeddingStatus.PendingWithObjection, "Wedding ceremony is not happening");
+      require(block.timestamp > weddingTimeEnd, "Too soon to complete the wedding");
+      require(msg.sender == coupleAddress2, "You cannot complete the wedding using this address");
+      _;
+    }
+    
+    function completeTheWedding() checkCoupleAddress public{
+        weddingStatus = WeddingStatus.Completed;
+    }
+
     
     function getCurrentVote(string memory name, uint256 couponCode) view public returns(int8, uint256) {
         int matched = authenticate(name, couponCode);
