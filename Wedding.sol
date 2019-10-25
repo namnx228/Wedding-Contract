@@ -206,6 +206,7 @@ contract Wedding{
         if (authenticate(providedName, couponCode) != -1) {
             object = Objection({reason: reason, postedPersonName: name, objectionDate: now, numOfPositiveVote: 1});
             
+            votingData[providedName] = 1;
             if (object.numOfPositiveVote / listOfGuest.length > objectionVotingThreshold) {
                 objectionStatus = ObjectionStatus.Completed;
                 weddingStatus = "Terminated";
