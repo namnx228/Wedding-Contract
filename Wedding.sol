@@ -2,7 +2,6 @@ pragma experimental ABIEncoderV2;
 pragma solidity >=0.4.0 <0.7.0;
 contract Wedding{
     uint256 constant NULL = uint256(0);
-
     struct Guest{
         string name;
         string email;
@@ -32,8 +31,9 @@ contract Wedding{
     string weddingStatus; //{Pending / Completed / Terminated / PendingWithObjection }
     uint256 weddingTime;
 
-    mapping (uint256 => uint256) ticketMapping;
-    mapping (uint256 => uint256) couponMapping;
+    mapping (string => uint256) ticketMapping;
+    mapping (string => uint256) couponMapping;
+    mapping (string => bool) participationRecord;
     mapping (uint256 => int8) votingData;
     string private constant ticket = "123yc346tb349v3";
     
@@ -97,10 +97,17 @@ contract Wedding{
         
         objectionVotingThreshold = 5;
     }
-    modifier checkWeddingStage(string memory expectedWeddingStatus){
-      require(compareStrings(expectedWeddingStatus, weddingStatus), "The wedding has been completed");
+    modifier checkWeddingStage(string memory expectedWeddingStatus, string memory message){
+      require(compareStrings(expectedWeddingStatus, weddingStatus), message);
       _;
     }
+    
+    modifier checkParticipationRecord(string memory name, string memory message){
+        require(participationRecord[name] == false, message);
+        _;
+    }
+    
+    
     //function login(string name, uint256 ticket) public {
       
       // int guestIndex = getGuestIndex(name, ticket);
@@ -121,40 +128,47 @@ contract Wedding{
     //   return listOfGuest;
     // }
     
+    
     // Accept function
-    function accept(string memory name, uint256 couponCode) checkWeddingStage("Pending") public {
+    function accept(string memory name, uint256 couponCode) 
+        checkWeddingStage("Pending","You are not allowed to accept the invitation anymore.") 
+        checkParticipationRecord(name,"You have already confirmed whether you will participate or not.") public {
         // hash provided name
-        uint256 providedName = uint256(sha256(abi.encodePacked(name)));
-
-        int matched = authenticate(providedName, couponCode);
+        //uint256 providedName = uint256(sha256(abi.encodePacked(name)));
+        //int matched = authenticate(providedName, couponCode);
+        int matched = authenticate(name, couponCode);
         if (matched != -1){
             listOfGuest[uint256(matched)].decision = true;
-            ticketMapping[providedName] = listOfGuest[uint256(matched)].ticket;
+            ticketMapping[name] = listOfGuest[uint256(matched)].ticket;
+            participationRecord[name] = true;
+            //ticketMapping[providedName] = listOfGuest[uint256(matched)].ticket;
             //return listOfGuest[uint256(matched)].ticket;
             //return guestTicket(uint256(matched));
         }
     }
 
     // Reject function
-    function reject(string memory name, uint256 couponCode) public {
+    function reject(string memory name, uint256 couponCode) 
+        checkWeddingStage("Pending","You are not allowed to accept the invitation anymore.") 
+        checkParticipationRecord(name,"You have already confirmed whether you will participate or not.") public {
         // hash provided name
-        uint256 providedName = uint256(sha256(abi.encodePacked(name)));
-        int matched = authenticate(providedName, couponCode);
+        //uint256 providedName = uint256(sha256(abi.encodePacked(name)));
+        int matched = authenticate(name, couponCode);
         if (matched != -1){
             listOfGuest[uint256(matched)].decision = false;
+            participationRecord[name] = true;
         }
     }
     
     // Authentication (Accept/Reject)
-    function authenticate(uint256 namehash, uint256 code) private view returns (int){
+    function authenticate(string memory name, uint256 code) private returns (int){
         for (uint8 i=0; i<listOfGuest.length; i++){
-            uint256 guestName = uint256(sha256(abi.encodePacked(listOfGuest[i].name)));
-            if((namehash == guestName) && (listOfGuest[i].couponCode == code)){
+            //uint256 guestName = uint256(sha256(abi.encodePacked(listOfGuest[i].name)));
+            if(compareStrings(name, listOfGuest[i].name) && (listOfGuest[i].couponCode == code)){
                 return i;
-            }else{
-                return -1;
             }
         }
+        return -1;
     }
 
     // ticket generation
@@ -169,9 +183,9 @@ contract Wedding{
     // coupon generation
     function couponGeneration() private {
         for (uint256 i = 0; i < listOfGuest.length ; i++){
-            uint256 providedName = uint256(sha256(abi.encodePacked(listOfGuest[i].name)));
+            //uint256 providedName = uint256(sha256(abi.encodePacked(listOfGuest[i].name)));
             listOfGuest[i].couponCode = random(i,"coupon");
-            couponMapping[providedName] = listOfGuest[i].couponCode;
+            couponMapping[listOfGuest[i].name] = listOfGuest[i].couponCode;
         }
     }
 
@@ -182,14 +196,14 @@ contract Wedding{
 
     // show guest ticket details
     function guestTicket(string memory name) view public returns (uint256){
-        uint256 providedName = uint256(sha256(abi.encodePacked(name)));
-        return ticketMapping[providedName];
+        //uint256 providedName = uint256(sha256(abi.encodePacked(name)));
+        return ticketMapping[name];
     }
     
     // show guest coupon details
     function guestCoupon(string memory name) view public returns (uint256){
-        uint256 providedName = uint256(sha256(abi.encodePacked(name)));
-        return couponMapping[providedName];
+        //uint256 providedName = uint256(sha256(abi.encodePacked(name)));
+        return couponMapping[name];
     }
     
     // random number generation
