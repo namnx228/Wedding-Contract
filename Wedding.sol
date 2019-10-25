@@ -11,8 +11,8 @@ contract Wedding{
     string objectionStatus;
     address coupleAddress;
 
-    mapping (uint256 => uint256) ticketMapping;
-    mapping (uint256 => uint256) couponMapping;
+    mapping (uint256 => uint256) public ticketMapping;
+    mapping (uint256 => uint256) public couponMapping;
     string private constant ticket = "123yc346tb349v3";
 
     struct Guest{
@@ -91,9 +91,10 @@ contract Wedding{
         wifeName = "Ngoc";
         location = "WC";
         weddingStatus = "Pending";
-        weddingTimeStart = 1572010575; // 10/25/2019 -- 0:0:0
-        weddingTimeEnd = 1572010620; // 10/26/2019 -- 0:0:0
-        coupleAddress = 0x86CEfcde6fb206629ea9D064Df31836EF1D1D648;
+        weddingTimeStart = 1571961600; // 10/25/2019 -- 0:0:0
+        weddingTimeEnd = 1572048000; // 10/26/2019 -- 0:0:0
+        //coupleAddress = 0x86CEfcde6fb206629ea9D064Df31836EF1D1D648;
+        coupleAddress = 0xCA35b7d915458EF540aDe6068dFe2F44E8fa733c; // Test address;
         for(uint i = 0; i < guestList.length; i++){
             listOfGuest.push(guestList[i]);
         }
@@ -106,6 +107,7 @@ contract Wedding{
       _;
     }
     modifier isBigDay(){
+        uint timestamp=block.timestamp;
       require(weddingTimeStart <= block.timestamp && block.timestamp <= weddingTimeEnd, "Today is not the bigday");
       _;
     }
@@ -119,13 +121,15 @@ contract Wedding{
       }
       return -1;
     }
-
-    function checkAddress(address senderAddress, uint index) view private returns(bool){
-      if (listOfGuest[index].etherumAddress ==  coupleAddress || listOfGuest[index].etherumAddress == senderAddress )
+    function checkAddress(address senderAddress, uint index) view public returns(bool){
+      
+      if (senderAddress ==  coupleAddress || senderAddress == listOfGuest[index].etherumAddress){
         // if the guest don't have account or they use the registered address to pay for the transaction then TRUE
         return true;
+      }
       return false;
     }
+    
 
     function login(string memory guestname, int256  guestticket) checkWeddingStage("Pending") isBigDay view public returns (string memory){
        int guestIndex = getGuestIndex(guestname, guestticket);
@@ -178,10 +182,9 @@ contract Wedding{
             uint256 guestName = uint256(sha256(abi.encodePacked(listOfGuest[i].name)));
             if((namehash == guestName) && (listOfGuest[i].couponCode == code)){
                 return i;
-            }else{
-                return -1;
             }
         }
+        return -1;
     }
 
     // ticket generation
@@ -241,6 +244,7 @@ contract Wedding{
         return (keccak256(abi.encodePacked((a))) == keccak256(abi.encodePacked((b))) );
     }
 }
+
 
 
 
