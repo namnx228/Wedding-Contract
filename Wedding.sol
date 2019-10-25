@@ -1,20 +1,7 @@
 pragma experimental ABIEncoderV2;
 pragma solidity >=0.4.0 <0.7.0;
 contract Wedding{
-    string eventName;
-    string husbandName;
-    string wifeName;
-    string location;
-    string weddingStatus; //{Pending / Completed / Terminated }
-    uint256 weddingTimeStart;
-    uint256 weddingTimeEnd;
-    string objectionStatus;
-    address coupleAddress;
-
-    mapping (uint256 => uint256) public ticketMapping;
-    mapping (uint256 => uint256) public couponMapping;
-    string private constant ticket = "123yc346tb349v3";
-
+    uint256 constant NULL = uint256(0);
     struct Guest{
         string name;
         string email;
@@ -27,11 +14,38 @@ contract Wedding{
         string reason;
         string postedPersonName;
         uint256 objectionDate;
-        uint8 numOfVote;
+        uint256 numOfPositiveVote;
     }
+    enum ObjectionStatus {
+        None,
+        Pending,
+        Completed,
+        Rejected // We may need this someday!?
+    }
+
+
+    string eventName;
+    string husbandName;
+    string wifeName;
+    string location;
+    string weddingStatus; //{Pending / Completed / Terminated / PendingWithObjection }
+    uint weddingTimeStart;
+    uint weddingTimeEnd;
+    address coupleAddress;
+    
+
+    mapping (string => uint256) ticketMapping;
+    mapping (string => uint256) couponMapping;
+    mapping (string => bool) participationRecord;
+    mapping (uint256 => int8) votingData;
+    string private constant ticket = "123yc346tb349v3";
+    
     Guest[] listOfGuest;
+    
+    ObjectionStatus objectionStatus = ObjectionStatus.None;
     Objection object;
-    uint256 constant NULL = uint256(0);
+    uint8 objectionVotingThreshold;
+
     /*
     constructor() public {
         eventName = "Khiem - Ngoc wedding";
@@ -56,18 +70,6 @@ contract Wedding{
       newGuest=Guest({couponCode: NULL, decision: true, name: "Nam", ticket: NULL, email: "nam@gmail.com", etherumAddress: 0x671afec674940d292804Ecfd7A2AeAbE2bD3f1a0});
       listOfGuest.push(newGuest);
     }
-    
-    //function createGuestList() private returns (Guest[]);
-    //function authenticate(string name, string code) private;
-    //function ticketGeneration() public;
-    //function couponGeneration() private;
-    //function accept(string name, string couponCode) public;
-    //function reject(string name, string couponCode) public;
-    //function login(string name, string ticket) public;
-    //function opposeWedding(string reason, string name, string couponCode ) public; // check objectionStatus
-    //------------------------------------------------ Optional part-----------------------------------
-    //function objectionVoting(string name, string couponCode, bool wannaStop) public;
-    
 
     // Accept function
     function accept(string memory name, uint256 couponCode) public {
@@ -80,7 +82,6 @@ contract Wedding{
             ticketMapping[providedName] = listOfGuest[uint256(matched)].ticket;
             //return listOfGuest[uint256(matched)].ticket;
             //return guestTicket(uint256(matched));
-=======
         listOfGuest = createGuestList();
         // object = NULL; 
     }
@@ -91,27 +92,40 @@ contract Wedding{
         wifeName = "Ngoc";
         location = "WC";
         weddingStatus = "Pending";
+        
         weddingTimeStart = 1571961600; // 10/25/2019 -- 0:0:0
         weddingTimeEnd = 1572048000; // 10/26/2019 -- 0:0:0
+        
         //coupleAddress = 0x86CEfcde6fb206629ea9D064Df31836EF1D1D648;
+        
         coupleAddress = 0xCA35b7d915458EF540aDe6068dFe2F44E8fa733c; // Test address;
+        
         for(uint i = 0; i < guestList.length; i++){
             listOfGuest.push(guestList[i]);
         }
         
         ticketGeneration();
         couponGeneration();
+        
+        objectionVotingThreshold = 5;
+        
     }
-    modifier checkWeddingStage(string memory expectedWeddingStatus){
-      require(compareStrings(expectedWeddingStatus, weddingStatus), "The wedding has been completed");
+    modifier checkWeddingStage(string memory expectedWeddingStatus, string memory message){
+      require(compareStrings(expectedWeddingStatus, weddingStatus), message);
       _;
     }
+
+    modifier checkParticipationRecord(string memory name, string memory message){
+        require(participationRecord[name] == false, message);
+        _;
+    }
+
     modifier isBigDay(){
         uint timestamp=block.timestamp;
       require(weddingTimeStart <= block.timestamp && block.timestamp <= weddingTimeEnd, "Today is not the bigday");
       _;
     }
-    function getGuest(string  memory guestname, int256  guestticket) view private returns(int){
+    function getGuest(string  memory guestname, int256  guestticket) view private returns (int){
       for (uint i = 0; i < listOfGuest.length; i++){
         string memory tmpName = listOfGuest[i].name;
         uint tmpTicket = listOfGuest[i].ticket;
@@ -121,8 +135,9 @@ contract Wedding{
       }
       return -1;
     }
+
     function checkAddress(address senderAddress, uint index) view public returns(bool){
-      
+    //function login(string name, uint256 ticket) public {
       if (senderAddress ==  coupleAddress || senderAddress == listOfGuest[index].etherumAddress){
         // if the guest don't have account or they use the registered address to pay for the transaction then TRUE
         return true;
@@ -132,6 +147,7 @@ contract Wedding{
     
     function checkIn(string memory guestname, int256 guestticket) view private returns(int){
        int guestIndex = getGuest(guestname, guestticket);
+       //int guestIndex = 0;
        if (guestIndex == -1 )
          return 2;
        if (!checkAddress(msg.sender, uint(guestIndex))){
@@ -140,8 +156,10 @@ contract Wedding{
        return 0;
     }
 
-    function login(string memory guestname, int256  guestticket) checkWeddingStage("Pending") isBigDay view public returns (string memory){
+    function login(string memory guestname, int256  guestticket) checkWeddingStage("Pending", "Go out") isBigDay view public returns (string memory){
+    //unction login(string memory guestname, int256  guestticket)  view public returns (string memory){    
        int checkInResturn = checkIn(guestname, guestticket);
+       //int checkInResturn = 0;
        if (checkInResturn == 2)
           return "You don't have the ticket or you are not invited";
        else if (checkInResturn == 1)
@@ -149,35 +167,43 @@ contract Wedding{
        return "Welcome to the wedding";
     }
     
+    
     // Accept function
-    function accept(string memory name, uint256 couponCode) checkWeddingStage("Pending") public {
+    function accept(string memory name, uint256 couponCode) 
+        checkWeddingStage("Pending","You are not allowed to accept the invitation anymore.") 
+        checkParticipationRecord(name,"You have already confirmed whether you will participate or not.") public {
         // hash provided name
-        uint256 providedName = uint256(sha256(abi.encodePacked(name)));
-
-        int matched = authenticate(providedName, couponCode);
+        //uint256 providedName = uint256(sha256(abi.encodePacked(name)));
+        //int matched = authenticate(providedName, couponCode);
+        int matched = authenticate(name, couponCode);
         if (matched != -1){
             listOfGuest[uint256(matched)].decision = true;
-            ticketMapping[providedName] = listOfGuest[uint256(matched)].ticket;
+            ticketMapping[name] = listOfGuest[uint256(matched)].ticket;
+            participationRecord[name] = true;
+            //ticketMapping[providedName] = listOfGuest[uint256(matched)].ticket;
             //return listOfGuest[uint256(matched)].ticket;
             //return guestTicket(uint256(matched));
         }
     }
 
     // Reject function
-    function reject(string memory name, uint256 couponCode) public {
+    function reject(string memory name, uint256 couponCode) 
+        checkWeddingStage("Pending","You are not allowed to accept the invitation anymore.") 
+        checkParticipationRecord(name,"You have already confirmed whether you will participate or not.") public {
         // hash provided name
-        uint256 providedName = uint256(sha256(abi.encodePacked(name)));
-        int matched = authenticate(providedName, couponCode);
+        //uint256 providedName = uint256(sha256(abi.encodePacked(name)));
+        int matched = authenticate(name, couponCode);
         if (matched != -1){
             listOfGuest[uint256(matched)].decision = false;
+            participationRecord[name] = true;
         }
     }
     
     // Authentication (Accept/Reject)
-    function authenticate(uint256 namehash, uint256 code) private view returns (int){
+    function authenticate(string memory name, uint256 code) private view returns (int){
         for (uint8 i=0; i<listOfGuest.length; i++){
-            uint256 guestName = uint256(sha256(abi.encodePacked(listOfGuest[i].name)));
-            if((namehash == guestName) && (listOfGuest[i].couponCode == code)){
+            //uint256 guestName = uint256(sha256(abi.encodePacked(listOfGuest[i].name)));
+            if(compareStrings(name, listOfGuest[i].name) && (listOfGuest[i].couponCode == code)){
                 return i;
             }
         }
@@ -196,9 +222,9 @@ contract Wedding{
     // coupon generation
     function couponGeneration() private {
         for (uint256 i = 0; i < listOfGuest.length ; i++){
-            uint256 providedName = uint256(sha256(abi.encodePacked(listOfGuest[i].name)));
+            //uint256 providedName = uint256(sha256(abi.encodePacked(listOfGuest[i].name)));
             listOfGuest[i].couponCode = random(i,"coupon");
-            couponMapping[providedName] = listOfGuest[i].couponCode;
+            couponMapping[listOfGuest[i].name] = listOfGuest[i].couponCode;
         }
     }
 
@@ -206,27 +232,17 @@ contract Wedding{
        return listOfGuest;
 
     }
-    //function createGuestList() private returns (Guest[]);
-    //function authenticate(string name, string code) private;
-    //function ticketGeneration() private;
-    //function couponGeneration() private;
-    //function accept(string name, string couponCode) public;
-    //function reject(string name, string couponCode) public;
-    //function login(string name, string ticket) public;
-    //function opposeWedding(string reason, string name, string couponCode ) public; // check objectionStatus
-    ////------------------------------------------------ Optional part-----------------------------------
-    //function objectionVoting(string name, string couponCode, bool wannaStop) public;
 
     // show guest ticket details
     function guestTicket(string memory name) view public returns (uint256){
-        uint256 providedName = uint256(sha256(abi.encodePacked(name)));
-        return ticketMapping[providedName];
+        //uint256 providedName = uint256(sha256(abi.encodePacked(name)));
+        return ticketMapping[name];
     }
     
     // show guest coupon details
     function guestCoupon(string memory name) view public returns (uint256){
-        uint256 providedName = uint256(sha256(abi.encodePacked(name)));
-        return couponMapping[providedName];
+        //uint256 providedName = uint256(sha256(abi.encodePacked(name)));
+        return couponMapping[name];
     }
     
     // random number generation
@@ -237,13 +253,72 @@ contract Wedding{
         return uint32(uint256(sha256(abi.encodePacked(ticket_coupon, guestName))) % 4294967295);
     }
 
-    function compareStrings (string memory a, string memory b) view private returns (bool) {
+    function opposeWedding(string memory reason, string memory name, uint256 couponCode) public {
+        require(objectionStatus == ObjectionStatus.None, "Relax, there has been arealdy an objection, do you like to vote?");
+        
+        if (authenticate(name, couponCode) != -1) {
+            uint256 providedName = uint256(sha256(abi.encodePacked(name)));
+            object = Objection({reason: reason, postedPersonName: name, objectionDate: now, numOfPositiveVote: 1});
+            
+            votingData[providedName] = 1;
+            if (object.numOfPositiveVote / listOfGuest.length > objectionVotingThreshold) {
+                objectionStatus = ObjectionStatus.Completed;
+                weddingStatus = "Terminated";
+                return;
+            } else {
+                objectionStatus = ObjectionStatus.Pending;
+                weddingStatus = "PendingWithObjection";    
+            }
+            
+        }
+    }
+    
+    function getObjectionStatus(string memory name, uint256 couponCode) public view returns (string memory, string memory, uint256){
+        if (authenticate(name, couponCode) != -1) {
+            uint256 providedName = uint256(sha256(abi.encodePacked(name)));
+            
+            if (objectionStatus == ObjectionStatus.Pending) {
+                return ("Pending Objection", object.reason, object.numOfPositiveVote);
+            } else if (objectionStatus == ObjectionStatus.Rejected) {
+                return ("Rejected Objection, Everything is still good!", object.reason, object.numOfPositiveVote);
+            } else if (objectionStatus == ObjectionStatus.Completed) {
+                return ("Completed Objection, DONE!", object.reason, object.numOfPositiveVote);
+            }
+            return ("Everything is still good, I guess!", "", 0);
+        }
+        
+        return ("Hello outsider, thank you for playing with us!", "", 0);
+    }
+   
+    function objectionVoting(string memory name, uint256 couponCode, bool wannaStop) public {            
+        require(objectionStatus == ObjectionStatus.Pending, "There must be an objection created or not yet terminated to be able to vote!");
+        
+        if (authenticate(name, couponCode) != -1) {
+            
+            uint256 providedName = uint256(sha256(abi.encodePacked(name)));
+            int8 currentVote = votingData[providedName];
+            if (wannaStop) {
+                votingData[providedName] = 1;
+                if (currentVote == -1) {
+                    object.numOfPositiveVote += 1;
+                }
+            } else {
+                votingData[providedName] = -1;
+                if (currentVote == 1) {
+                    object.numOfPositiveVote -= 1;
+                }
+            }
+            
+            if (object.numOfPositiveVote / listOfGuest.length > objectionVotingThreshold) {
+                weddingStatus = "Terminated";
+                objectionStatus = ObjectionStatus.Completed;
+            }
+        }
+    }
+
+    ////------------------------------------------------ Utility Functions -----------------------------------
+    function compareStrings (string memory a, string memory b) private view returns (bool) {
         return (keccak256(abi.encodePacked((a))) == keccak256(abi.encodePacked((b))) );
     }
 }
-
-
-
-
-
 
