@@ -268,9 +268,11 @@ contract Wedding{
     }
 
     function opposeWedding(string memory reason, string memory name, uint256 couponCode) public {
-        require(objectionStatus == ObjectionStatus.None, "Relax, there has been arealdy an objection, do you like to vote?");
+        int matched = authenticate(name, couponCode);
         
-        if (authenticate(name, couponCode) != -1) {
+        if (checkAddress(msg.sender, uint(matched))) {
+            require(objectionStatus == ObjectionStatus.None, "Relax, there has been arealdy an objection, do you like to vote?");
+            
             uint256 providedName = uint256(sha256(abi.encodePacked(name)));
             object = Objection({reason: reason, postedPersonName: name, objectionDate: now, numOfPositiveVote: 1});
             
@@ -288,7 +290,9 @@ contract Wedding{
     }
     
     function getObjectionStatus(string memory name, uint256 couponCode) public view returns (string memory, string memory, uint256){
-        if (authenticate(name, couponCode) != -1) {
+        int matched = authenticate(name, couponCode);
+        
+        if (checkAddress(msg.sender, uint(matched))) {
             uint256 providedName = uint256(sha256(abi.encodePacked(name)));
             
             if (objectionStatus == ObjectionStatus.Pending) {
@@ -305,7 +309,9 @@ contract Wedding{
     }
     
     function getCurrentVote(string memory name, uint256 couponCode) view public returns(int8, uint256) {
-        if (authenticate(name, couponCode) != -1) {
+        int matched = authenticate(name, couponCode);
+        
+        if (checkAddress(msg.sender, uint(matched))) {
             uint256 providedName = uint256(sha256(abi.encodePacked(name)));
             return (votingData[providedName], object.numOfPositiveVote);
         }
@@ -313,9 +319,10 @@ contract Wedding{
     }
    
     function objectionVoting(string memory name, uint256 couponCode, bool wannaStop) public {            
-        require(objectionStatus == ObjectionStatus.Pending, "There must be an objection created or not yet terminated to be able to vote!");
+        int matched = authenticate(name, couponCode);
         
-        if (authenticate(name, couponCode) != -1) {
+        if (checkAddress(msg.sender, uint(matched))) {
+            require(objectionStatus == ObjectionStatus.Pending, "There must be an objection created or not yet terminated to be able to vote!");
             
             uint256 providedName = uint256(sha256(abi.encodePacked(name)));
             int8 currentVote = votingData[providedName];
