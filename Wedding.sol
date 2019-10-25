@@ -103,6 +103,18 @@ contract Wedding{
         ticketGeneration();
         couponGeneration();
     }
+    modifier checkWeddingStage(string memory expectedWeddingStatus){
+      require(compareStrings(expectedWeddingStatus, weddingStatus), "The wedding has been completed");
+      _;
+    }
+    //function login(string name, uint256 ticket) public {
+      
+      // int guestIndex = getGuestIndex(name, ticket);
+      // accept(name, 0 );
+
+      // check if user has address ?
+
+    //}
     // function createGuestList() private returns(Guest[] storage){
     //   // create new user
     //   // add to array
@@ -116,7 +128,7 @@ contract Wedding{
     // }
     
     // Accept function
-    function accept(string memory name, uint256 couponCode) public {
+    function accept(string memory name, uint256 couponCode) checkWeddingStage("Pending") public {
         // hash provided name
         uint256 providedName = uint256(sha256(abi.encodePacked(name)));
 
@@ -193,7 +205,7 @@ contract Wedding{
         //return uint32(uint256(sha256(listOfGuest[index].name)) % 4294967295);
         return uint32(uint256(sha256(abi.encodePacked(ticket_coupon, guestName))) % 4294967295);
     }
-    
+
     function opposeWedding(string memory reason, string memory name, uint256 couponCode) public {
         uint256 providedName = uint256(sha256(abi.encodePacked(name)));
         if (authenticate(providedName, couponCode) != -1) {
@@ -204,6 +216,10 @@ contract Wedding{
         }
     }
 
+    ////------------------------------------------------ Utility Functions -----------------------------------
+    function compareStrings (string memory a, string memory b) private returns (bool) {
+        return (keccak256(abi.encodePacked((a))) == keccak256(abi.encodePacked((b))) );
+    }
 
     //function createGuestList() private returns (Guest[]);
     //function authenticate(string name, string code) private;
