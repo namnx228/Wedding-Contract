@@ -11,6 +11,7 @@ contract Wedding{
 
     mapping (string => uint256) ticketMapping;
     mapping (string => uint256) couponMapping;
+    mapping (string => bool) participationRecord;
     string private constant ticket = "123yc346tb349v3";
 
     struct Guest{
@@ -95,10 +96,17 @@ contract Wedding{
         ticketGeneration();
         couponGeneration();
     }
-    modifier checkWeddingStage(string memory expectedWeddingStatus){
-      require(compareStrings(expectedWeddingStatus, weddingStatus), "The wedding has been completed");
+    modifier checkWeddingStage(string memory expectedWeddingStatus, string memory message){
+      require(compareStrings(expectedWeddingStatus, weddingStatus), message);
       _;
     }
+    
+    modifier checkParticipationRecord(string memory name, string memory message){
+        require(participationRecord[name] == false, message);
+        _;
+    }
+    
+    
     //function login(string name, uint256 ticket) public {
       
       // int guestIndex = getGuestIndex(name, ticket);
@@ -121,31 +129,33 @@ contract Wedding{
     
     
     // Accept function
-    function accept(string memory name, uint256 couponCode) checkWeddingStage("Pending") public {
+    function accept(string memory name, uint256 couponCode) 
+        checkWeddingStage("Pending","You are not allowed to accept the invitation anymore.") 
+        checkParticipationRecord(name,"You have already confirmed whether you will participate or not.") public {
         // hash provided name
         //uint256 providedName = uint256(sha256(abi.encodePacked(name)));
-        if(compareStrings(weddingStatus,"Pending")){
-            //int matched = authenticate(providedName, couponCode);
-            int matched = authenticate(name, couponCode);
-            if (matched != -1){
-                listOfGuest[uint256(matched)].decision = true;
-                //ticketMapping[providedName] = listOfGuest[uint256(matched)].ticket;
-                ticketMapping[name] = listOfGuest[uint256(matched)].ticket;
-                //return listOfGuest[uint256(matched)].ticket;
-                //return guestTicket(uint256(matched));
-            }
+        //int matched = authenticate(providedName, couponCode);
+        int matched = authenticate(name, couponCode);
+        if (matched != -1){
+            listOfGuest[uint256(matched)].decision = true;
+            ticketMapping[name] = listOfGuest[uint256(matched)].ticket;
+            participationRecord[name] = true;
+            //ticketMapping[providedName] = listOfGuest[uint256(matched)].ticket;
+            //return listOfGuest[uint256(matched)].ticket;
+            //return guestTicket(uint256(matched));
         }
     }
 
     // Reject function
-    function reject(string memory name, uint256 couponCode) public {
+    function reject(string memory name, uint256 couponCode) 
+        checkWeddingStage("Pending","You are not allowed to accept the invitation anymore.") 
+        checkParticipationRecord(name,"You have already confirmed whether you will participate or not.") public {
         // hash provided name
         //uint256 providedName = uint256(sha256(abi.encodePacked(name)));
-        if(compareStrings(weddingStatus,"Pending")){
-            int matched = authenticate(name, couponCode);
-            if (matched != -1){
-                listOfGuest[uint256(matched)].decision = false;
-            }
+        int matched = authenticate(name, couponCode);
+        if (matched != -1){
+            listOfGuest[uint256(matched)].decision = false;
+            participationRecord[name] = true;
         }
     }
     
@@ -155,10 +165,9 @@ contract Wedding{
             //uint256 guestName = uint256(sha256(abi.encodePacked(listOfGuest[i].name)));
             if(compareStrings(name, listOfGuest[i].name) && (listOfGuest[i].couponCode == code)){
                 return i;
-            }else{
-                return -1;
             }
         }
+        return -1;
     }
 
     // ticket generation
