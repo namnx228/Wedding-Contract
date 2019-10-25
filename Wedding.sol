@@ -38,6 +38,7 @@ contract Wedding{
     
     ObjectionStatus objectionStatus;
     Objection object;
+    uint8 objectionVotingThreshold;
 
     /*
     constructor() public {
