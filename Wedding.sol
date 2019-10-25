@@ -1,17 +1,7 @@
 pragma experimental ABIEncoderV2;
 pragma solidity >=0.4.0 <0.7.0;
 contract Wedding{
-    string eventName;
-    string husbandName;
-    string wifeName;
-    string location;
-    string weddingStatus; //{Pending / Completed / Terminated }
-    uint256 weddingTime;
-    string objectionStatus;
-
-    mapping (uint256 => uint256) ticketMapping;
-    mapping (uint256 => uint256) couponMapping;
-    string private constant ticket = "123yc346tb349v3";
+    uint256 constant NULL = uint256(0);
 
     struct Guest{
         string name;
@@ -27,9 +17,23 @@ contract Wedding{
         uint256 objectionDate;
         uint8 numOfVote;
     }
+
+    string eventName;
+    string husbandName;
+    string wifeName;
+    string location;
+    string weddingStatus; //{Pending / Completed / Terminated }
+    uint256 weddingTime;
+
+    mapping (uint256 => uint256) ticketMapping;
+    mapping (uint256 => uint256) couponMapping;
+    string private constant ticket = "123yc346tb349v3";
+    
     Guest[] listOfGuest;
+    
+    string objectionStatus;
     Objection object;
-    uint256 constant NULL = uint256(0);
+
     /*
     constructor() public {
         eventName = "Khiem - Ngoc wedding";
@@ -77,7 +81,6 @@ contract Wedding{
             ticketMapping[providedName] = listOfGuest[uint256(matched)].ticket;
             //return listOfGuest[uint256(matched)].ticket;
             //return guestTicket(uint256(matched));
-=======
         listOfGuest = createGuestList();
         // object = NULL; 
     }
@@ -165,16 +168,6 @@ contract Wedding{
        return listOfGuest;
 
     }
-    //function createGuestList() private returns (Guest[]);
-    //function authenticate(string name, string code) private;
-    //function ticketGeneration() private;
-    //function couponGeneration() private;
-    //function accept(string name, string couponCode) public;
-    //function reject(string name, string couponCode) public;
-    //function login(string name, string ticket) public;
-    //function opposeWedding(string reason, string name, string couponCode ) public; // check objectionStatus
-    ////------------------------------------------------ Optional part-----------------------------------
-    //function objectionVoting(string name, string couponCode, bool wannaStop) public;
 
     // show guest ticket details
     function guestTicket(string memory name) view public returns (uint256){
@@ -196,9 +189,20 @@ contract Wedding{
         return uint32(uint256(sha256(abi.encodePacked(ticket_coupon, guestName))) % 4294967295);
     }
     
-    
+    function opposeWedding(string reason, string name, string couponCode) public {
+    }
 
-         
-     }
+
+    //function createGuestList() private returns (Guest[]);
+    //function authenticate(string name, string code) private;
+    //function ticketGeneration() private;
+    //function couponGeneration() private;
+    //function accept(string name, string couponCode) public;
+    //function reject(string name, string couponCode) public;
+    //function login(string name, string ticket) public;
+    //function opposeWedding(string reason, string name, string couponCode ) public; // check objectionStatus
+    ////------------------------------------------------ Optional part-----------------------------------
+    //function objectionVoting(string name, string couponCode, bool wannaStop) public;
+}
 
 
