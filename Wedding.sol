@@ -23,6 +23,7 @@ contract Wedding{
         Rejected
     }
 
+
     string eventName;
     string husbandName;
     string wifeName;
@@ -36,7 +37,7 @@ contract Wedding{
     
     Guest[] listOfGuest;
     
-    ObjectionStatus objectionStatus;
+    ObjectionStatus objectionStatus = NULL;
     Objection object;
     uint8 objectionVotingThreshold;
 
@@ -208,12 +209,39 @@ contract Wedding{
     }
 
     function opposeWedding(string memory reason, string memory name, uint256 couponCode) public {
+        require(objectionStatus == ObjectionStatus(0), "Relax, there has been arealdy an objection, do you like to vote?");
+        
         uint256 providedName = uint256(sha256(abi.encodePacked(name)));
         if (authenticate(providedName, couponCode) != -1) {
             object = Objection({reason: reason, postedPersonName: name, objectionDate: now, numOfVote: 0});
             objectionStatus = ObjectionStatus.Pending;
             
             weddingStatus = "Terminated";
+        }
+    }
+    
+    function getObjectionStatus(string memory name, uint256 couponCode) public returns (string memory, string memory){
+        uint256 providedName = uint256(sha256(abi.encodePacked(name)));
+        if (authenticate(providedName, couponCode) != -1) {
+            if (objectionStatus == ObjectionStatus.Pending) {
+                return ("Pending Objection", object.reason);
+            } else if (objectionStatus == ObjectionStatus.Rejected) {
+                return ("Rejected Objection, Everything is still good!", object.reason);
+            } else if (objectionStatus == ObjectionStatus.Completed) {
+                return ("Completed Objection, DONE!", object.reason);
+            }
+            return ("Everything is still good, I guess!", "");
+        }
+        
+        return ("Hello outsider, thank you for playing with us!", "");
+    }
+   
+    function objectionVoting(string memory name, uint256 couponCode, bool wannaStop) public {            
+        require(objectionStatus == ObjectionStatus.Pending, "There must be an objection created to be able to vote!");
+        
+        uint256 providedName = uint256(sha256(abi.encodePacked(name)));
+        if (authenticate(providedName, couponCode) != -1) {
+                
         }
     }
 
