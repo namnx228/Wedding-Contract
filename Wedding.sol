@@ -28,7 +28,7 @@ contract Wedding{
     string husbandName;
     string wifeName;
     string location;
-    string weddingStatus; //{Pending / Completed / Terminated }
+    string weddingStatus; //{Pending / Completed / Terminated / PendingWithObjection }
     uint256 weddingTime;
 
     mapping (uint256 => uint256) ticketMapping;
