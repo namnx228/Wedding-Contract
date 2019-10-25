@@ -111,7 +111,7 @@ contract Wedding{
       require(weddingTimeStart <= block.timestamp && block.timestamp <= weddingTimeEnd, "Today is not the bigday");
       _;
     }
-    function getGuestIndex(string  memory guestname, int256  guestticket) view private returns(int){
+    function getGuest(string  memory guestname, int256  guestticket) view private returns(int){
       for (uint i = 0; i < listOfGuest.length; i++){
         string memory tmpName = listOfGuest[i].name;
         uint tmpTicket = listOfGuest[i].ticket;
@@ -130,27 +130,24 @@ contract Wedding{
       return false;
     }
     
+    function checkIn(string memory guestname, int256 guestticket) view private returns(int){
+       int guestIndex = getGuest(guestname, guestticket);
+       if (guestIndex == -1 )
+         return 2;
+       if (!checkAddress(msg.sender, uint(guestIndex))){
+         return 1;
+       }
+       return 0;
+    }
 
     function login(string memory guestname, int256  guestticket) checkWeddingStage("Pending") isBigDay view public returns (string memory){
-       int guestIndex = getGuestIndex(guestname, guestticket);
-       if (guestIndex == -1 )
-         return "You don't have the ticket or you are not invited";
-       if (!checkAddress(msg.sender, uint(guestIndex))){
-         return "This address is not allowed to be involed in this contract";
-       }
+       int checkInResturn = checkIn(guestname, guestticket);
+       if (checkInResturn == 2)
+          return "You don't have the ticket or you are not invited";
+       else if (checkInResturn == 1)
+          return "This address is not allowed to be involed in this contract";
        return "Welcome to the wedding";
     }
-    // function createGuestList() private returns(Guest[] storage){
-    //   // create new user
-    //   // add to array
-    //   Guest memory newGuest=Guest({name: "Arnab", ticket: NULL, couponCode: NULL,  email: "arnab@gmail.com", etherumAddress: 0x81549c1746d2Ce0ACd15470104EBc62B7a104fa6, decision: false});
-    //   listOfGuest.push(newGuest);
-    //   newGuest=Guest({name: "Nam", ticket: NULL, couponCode: NULL,  email: "nam@gmail.com", etherumAddress: 0x671afec674940d292804Ecfd7A2AeAbE2bD3f1a0, decision: false});
-    //   listOfGuest.push(newGuest);
-    //   newGuest=Guest({name: "Shamim", ticket: NULL, couponCode: NULL,  email: "shamim@gmail.com", etherumAddress: 0x671afec674940d292804Ecfd7A2AeAbE2bD3f1a0, decision: false});
-    //   listOfGuest.push(newGuest);
-    //   return listOfGuest;
-    // }
     
     // Accept function
     function accept(string memory name, uint256 couponCode) checkWeddingStage("Pending") public {
@@ -244,6 +241,7 @@ contract Wedding{
         return (keccak256(abi.encodePacked((a))) == keccak256(abi.encodePacked((b))) );
     }
 }
+
 
 
 
