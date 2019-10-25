@@ -22,13 +22,19 @@ contract Wedding{
         Completed,
         Rejected // We may need this someday!?
     }
+    enum WeddingStatus {
+        Pending,
+        Completed,
+        Terminated,
+        PendingWithObjection
+    }
 
 
     string eventName;
     string husbandName;
     string wifeName;
     string location;
-    string weddingStatus; //{Pending / Completed / Terminated / PendingWithObjection }
+    WeddingStatus weddingStatus; //{Pending / Completed / Terminated / PendingWithObjection }
     uint weddingTimeStart;
     uint weddingTimeEnd;
     address coupleAddress;
@@ -91,7 +97,7 @@ contract Wedding{
         husbandName = "Khiem";
         wifeName = "Ngoc";
         location = "WC";
-        weddingStatus = "Pending";
+        weddingStatus = WeddingStatus.Pending;
         
         weddingTimeStart = 1571961600; // 10/25/2019 -- 0:0:0
         weddingTimeEnd = 1572048000; // 10/26/2019 -- 0:0:0
@@ -108,10 +114,9 @@ contract Wedding{
         couponGeneration();
         
         objectionVotingThreshold = 5;
-        
     }
-    modifier checkWeddingStage(string memory expectedWeddingStatus, string memory message){
-      require(compareStrings(expectedWeddingStatus, weddingStatus), message);
+    modifier checkWeddingStage(WeddingStatus expectedWeddingStatus, string memory message){
+      require(expectedWeddingStatus == weddingStatus, message);
       _;
     }
 
@@ -147,7 +152,6 @@ contract Wedding{
     
     function checkIn(string memory guestname, int256 guestticket) view private returns(int){
        int guestIndex = getGuest(guestname, guestticket);
-       //int guestIndex = 0;
        if (guestIndex == -1 )
          return 2;
        if (!checkAddress(msg.sender, uint(guestIndex))){
@@ -156,10 +160,8 @@ contract Wedding{
        return 0;
     }
 
-    function login(string memory guestname, int256  guestticket) checkWeddingStage("Pending", "Go out") isBigDay view public returns (string memory){
-    //unction login(string memory guestname, int256  guestticket)  view public returns (string memory){    
+    function login(string memory guestname, int256  guestticket) checkWeddingStage(WeddingStatus.Pending, "Go out") isBigDay view public returns (string memory){
        int checkInResturn = checkIn(guestname, guestticket);
-       //int checkInResturn = 0;
        if (checkInResturn == 2)
           return "You don't have the ticket or you are not invited";
        else if (checkInResturn == 1)
@@ -170,7 +172,7 @@ contract Wedding{
     
     // Accept function
     function accept(string memory name, uint256 couponCode) 
-        checkWeddingStage("Pending","You are not allowed to accept the invitation anymore.") 
+        checkWeddingStage(WeddingStatus.Pending,"You are not allowed to accept the invitation anymore.") 
         checkParticipationRecord(name,"You have already confirmed whether you will participate or not.") public {
         // hash provided name
         //uint256 providedName = uint256(sha256(abi.encodePacked(name)));
@@ -188,7 +190,7 @@ contract Wedding{
 
     // Reject function
     function reject(string memory name, uint256 couponCode) 
-        checkWeddingStage("Pending","You are not allowed to accept the invitation anymore.") 
+        checkWeddingStage(WeddingStatus.Pending,"You are not allowed to accept the invitation anymore.") 
         checkParticipationRecord(name,"You have already confirmed whether you will participate or not.") public {
         // hash provided name
         //uint256 providedName = uint256(sha256(abi.encodePacked(name)));
@@ -263,11 +265,11 @@ contract Wedding{
             votingData[providedName] = 1;
             if (object.numOfPositiveVote / listOfGuest.length > objectionVotingThreshold) {
                 objectionStatus = ObjectionStatus.Completed;
-                weddingStatus = "Terminated";
+                weddingStatus = WeddingStatus.Terminated;
                 return;
             } else {
                 objectionStatus = ObjectionStatus.Pending;
-                weddingStatus = "PendingWithObjection";    
+                weddingStatus = WeddingStatus.PendingWithObjection;    
             }
             
         }
@@ -310,7 +312,7 @@ contract Wedding{
             }
             
             if (object.numOfPositiveVote / listOfGuest.length > objectionVotingThreshold) {
-                weddingStatus = "Terminated";
+                weddingStatus = WeddingStatus.Terminated;
                 objectionStatus = ObjectionStatus.Completed;
             }
         }
