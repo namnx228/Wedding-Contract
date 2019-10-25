@@ -22,14 +22,23 @@ contract Wedding{
         Completed,
         Rejected // We may need this someday!?
     }
+    enum WeddingStatus {
+        Pending,
+        Completed,
+        Terminated,
+        PendingWithObjection
+    }
 
 
     string eventName;
     string husbandName;
     string wifeName;
     string location;
-    string weddingStatus; //{Pending / Completed / Terminated / PendingWithObjection }
-    uint256 weddingTime;
+    WeddingStatus weddingStatus; //{Pending / Completed / Terminated / PendingWithObjection }
+    uint weddingTimeStart;
+    uint weddingTimeEnd;
+    address coupleAddress;
+    
 
     mapping (string => uint256) ticketMapping;
     mapping (string => uint256) couponMapping;
@@ -50,7 +59,8 @@ contract Wedding{
         wifeName = "Ngoc";
         location = "WC";
         weddingStatus = "Pending";
-        weddingTime = 1572047999;
+        weddingTimeStart = 1572010575; // 10/25/2019 -- 0:0:0
+        weddingTimeEnd = 1572010620; // 10/26/2019 -- 0:0:0
         createGuestList();
         ticketGeneration();
         couponGeneration();
@@ -87,56 +97,89 @@ contract Wedding{
         husbandName = "Khiem";
         wifeName = "Ngoc";
         location = "WC";
-        weddingStatus = "Pending";
-        weddingTime = 1572047999;
+        weddingStatus = WeddingStatus.Pending;
+        
+        weddingTimeStart = 1571961600; // 10/25/2019 -- 0:0:0
+        weddingTimeEnd = 1572048000; // 10/26/2019 -- 0:0:0
+        
+        //coupleAddress = 0x86CEfcde6fb206629ea9D064Df31836EF1D1D648;
+        
+        coupleAddress = 0xCA35b7d915458EF540aDe6068dFe2F44E8fa733c; // Test address;
+        
         for(uint i = 0; i < guestList.length; i++){
             listOfGuest.push(guestList[i]);
         }
+        
         ticketGeneration();
         couponGeneration();
         
         objectionVotingThreshold = 50;
     }
-    modifier checkWeddingStage(string memory expectedWeddingStatus, string memory message){
-      require(compareStrings(expectedWeddingStatus, weddingStatus), message);
+    modifier checkWeddingStage(WeddingStatus expectedWeddingStatus, string memory message){
+      require(expectedWeddingStatus == weddingStatus, message);
       _;
     }
-    
+
     modifier checkParticipationRecord(string memory name, string memory message){
         require(participationRecord[name] == false, message);
         _;
     }
-    
-    
+
+    modifier isBigDay(){
+        uint timestamp=block.timestamp;
+      require(weddingTimeStart <= block.timestamp && block.timestamp <= weddingTimeEnd, "Today is not the bigday");
+      _;
+    }
+    function getGuest(string  memory guestname, int256  guestticket) view private returns (int){
+      for (uint i = 0; i < listOfGuest.length; i++){
+        string memory tmpName = listOfGuest[i].name;
+        uint tmpTicket = listOfGuest[i].ticket;
+        if (compareStrings(tmpName, guestname) &&  tmpTicket ==  uint(guestticket)){
+          return int(i);
+        }
+      }
+      return -1;
+    }
+
+    function checkAddress(address senderAddress, uint index) view public returns(bool){
     //function login(string name, uint256 ticket) public {
-      
-      // int guestIndex = getGuestIndex(name, ticket);
-      // accept(name, 0 );
+      if (senderAddress ==  coupleAddress || senderAddress == listOfGuest[index].etherumAddress){
+        // if the guest don't have account or they use the registered address to pay for the transaction then TRUE
+        return true;
+      }
+      return false;
+    }
+    
+    function checkIn(string memory guestname, int256 guestticket) view private returns(int){
+       int guestIndex = getGuest(guestname, guestticket);
+       if (guestIndex == -1 )
+         return 2;
+       if (!checkAddress(msg.sender, uint(guestIndex))){
+         return 1;
+       }
+       return 0;
+    }
 
-      // check if user has address ?
-
-    //}
-    // function createGuestList() private returns(Guest[] storage){
-    //   // create new user
-    //   // add to array
-    //   Guest memory newGuest=Guest({name: "Arnab", ticket: NULL, couponCode: NULL,  email: "arnab@gmail.com", etherumAddress: 0x81549c1746d2Ce0ACd15470104EBc62B7a104fa6, decision: false});
-    //   listOfGuest.push(newGuest);
-    //   newGuest=Guest({name: "Nam", ticket: NULL, couponCode: NULL,  email: "nam@gmail.com", etherumAddress: 0x671afec674940d292804Ecfd7A2AeAbE2bD3f1a0, decision: false});
-    //   listOfGuest.push(newGuest);
-    //   newGuest=Guest({name: "Shamim", ticket: NULL, couponCode: NULL,  email: "shamim@gmail.com", etherumAddress: 0x671afec674940d292804Ecfd7A2AeAbE2bD3f1a0, decision: false});
-    //   listOfGuest.push(newGuest);
-    //   return listOfGuest;
-    // }
+    function login(string memory guestname, int256  guestticket) checkWeddingStage(WeddingStatus.Pending, "Go out") isBigDay view public returns (string memory){
+       int checkInResturn = checkIn(guestname, guestticket);
+       if (checkInResturn == 2)
+          return "You don't have the ticket or you are not invited";
+       else if (checkInResturn == 1)
+          return "This address is not allowed to be involed in this contract";
+       return "Welcome to the wedding";
+    }
     
     
     // Accept function
     function accept(string memory name, uint256 couponCode) 
-        checkWeddingStage("Pending","You are not allowed to accept the invitation anymore.") 
+        checkWeddingStage(WeddingStatus.Pending,"You are not allowed to accept the invitation anymore.") 
         checkParticipationRecord(name,"You have already confirmed whether you will participate or not.") public {
         // hash provided name
         //uint256 providedName = uint256(sha256(abi.encodePacked(name)));
         //int matched = authenticate(providedName, couponCode);
         int matched = authenticate(name, couponCode);
+        if (!checkAddress(msg.sender, uint(matched)))
+          return ;
         if (matched != -1){
             listOfGuest[uint256(matched)].decision = true;
             ticketMapping[name] = listOfGuest[uint256(matched)].ticket;
@@ -149,11 +192,13 @@ contract Wedding{
 
     // Reject function
     function reject(string memory name, uint256 couponCode) 
-        checkWeddingStage("Pending","You are not allowed to accept the invitation anymore.") 
+        checkWeddingStage(WeddingStatus.Pending,"You are not allowed to accept the invitation anymore.") 
         checkParticipationRecord(name,"You have already confirmed whether you will participate or not.") public {
         // hash provided name
         //uint256 providedName = uint256(sha256(abi.encodePacked(name)));
         int matched = authenticate(name, couponCode);
+        if (!checkAddress(msg.sender, uint(matched)))
+          return ;
         if (matched != -1){
             listOfGuest[uint256(matched)].decision = false;
             participationRecord[name] = true;
@@ -193,6 +238,14 @@ contract Wedding{
        return listOfGuest;
 
     }
+    function getWeddingStatus() view public returns (string memory){
+      if (weddingStatus == WeddingStatus.Pending)
+        return "Pending";
+      if (weddingStatus == WeddingStatus.Completed)
+        return "Completed";
+
+      return "Terminated";
+    }
 
     // show guest ticket details
     function guestTicket(string memory name) view public returns (uint256){
@@ -224,11 +277,11 @@ contract Wedding{
             votingData[providedName] = 1;
             if (object.numOfPositiveVote * 100 / listOfGuest.length > objectionVotingThreshold) {
                 objectionStatus = ObjectionStatus.Completed;
-                weddingStatus = "Terminated";
+                weddingStatus = WeddingStatus.Terminated;
                 return;
             } else {
                 objectionStatus = ObjectionStatus.Pending;
-                weddingStatus = "PendingWithObjection";    
+                weddingStatus = WeddingStatus.PendingWithObjection;    
             }
             
         }
@@ -279,7 +332,7 @@ contract Wedding{
             }
             
             if (object.numOfPositiveVote * 100 / listOfGuest.length > objectionVotingThreshold) {
-                weddingStatus = "Terminated";
+                weddingStatus = WeddingStatus.Terminated;
                 objectionStatus = ObjectionStatus.Completed;
             }
         }
@@ -289,15 +342,5 @@ contract Wedding{
     function compareStrings (string memory a, string memory b) private view returns (bool) {
         return (keccak256(abi.encodePacked((a))) == keccak256(abi.encodePacked((b))) );
     }
-
-    //function createGuestList() private returns (Guest[]);
-    //function authenticate(string name, string code) private;
-    //function ticketGeneration() private;
-    //function couponGeneration() private;
-    //function accept(string name, string couponCode) public;
-    //function reject(string name, string couponCode) public;
-    //function login(string name, string ticket) public;
-    //function opposeWedding(string reason, string name, string couponCode ) public; // check objectionStatus
-    ////------------------------------------------------ Optional part-----------------------------------
-    //function objectionVoting(string name, string couponCode, bool wannaStop) public;
 }
+
