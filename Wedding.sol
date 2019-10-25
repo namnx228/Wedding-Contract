@@ -6,8 +6,10 @@ contract Wedding{
     string wifeName;
     string location;
     string weddingStatus; //{Pending / Completed / Terminated }
-    uint256 weddingTime;
+    uint256 weddingTimeStart;
+    uint256 weddingTimeEnd;
     string objectionStatus;
+    address coupleAddress;
 
     mapping (uint256 => uint256) ticketMapping;
     mapping (uint256 => uint256) couponMapping;
@@ -37,7 +39,8 @@ contract Wedding{
         wifeName = "Ngoc";
         location = "WC";
         weddingStatus = "Pending";
-        weddingTime = 1572047999;
+        weddingTimeStart = 1572010575; // 10/25/2019 -- 0:0:0
+        weddingTimeEnd = 1572010620; // 10/26/2019 -- 0:0:0
         createGuestList();
         ticketGeneration();
         couponGeneration();
@@ -88,10 +91,13 @@ contract Wedding{
         wifeName = "Ngoc";
         location = "WC";
         weddingStatus = "Pending";
-        weddingTime = 1572047999;
+        weddingTimeStart = 1572010575; // 10/25/2019 -- 0:0:0
+        weddingTimeEnd = 1572010620; // 10/26/2019 -- 0:0:0
+        coupleAddress = 0x86CEfcde6fb206629ea9D064Df31836EF1D1D648;
         for(uint i = 0; i < guestList.length; i++){
             listOfGuest.push(guestList[i]);
         }
+        
         ticketGeneration();
         couponGeneration();
     }
@@ -99,14 +105,37 @@ contract Wedding{
       require(compareStrings(expectedWeddingStatus, weddingStatus), "The wedding has been completed");
       _;
     }
-    //function login(string name, uint256 ticket) public {
-      
-      // int guestIndex = getGuestIndex(name, ticket);
-      // accept(name, 0 );
+    modifier isBigDay(){
+      require(weddingTimeStart <= block.timestamp && block.timestamp <= weddingTimeEnd, "Today is not the bigday");
+      _;
+    }
+    function getGuestIndex(string  memory guestname, int256  guestticket) view private returns(int){
+      for (uint i = 0; i < listOfGuest.length; i++){
+        string memory tmpName = listOfGuest[i].name;
+        uint tmpTicket = listOfGuest[i].ticket;
+        if (compareStrings(tmpName, guestname) &&  tmpTicket ==  uint(guestticket)){
+          return int(i);
+        }
+      }
+      return -1;
+    }
 
-      // check if user has address ?
+    function checkAddress(address senderAddress, uint index) view private returns(bool){
+      if (listOfGuest[index].etherumAddress ==  coupleAddress || listOfGuest[index].etherumAddress == senderAddress )
+        // if the guest don't have account or they use the registered address to pay for the transaction then TRUE
+        return true;
+      return false;
+    }
 
-    //}
+    function login(string memory guestname, int256  guestticket) checkWeddingStage("Pending") isBigDay view public returns (string memory){
+       int guestIndex = getGuestIndex(guestname, guestticket);
+       if (guestIndex == -1 )
+         return "You don't have the ticket or you are not invited";
+       if (!checkAddress(msg.sender, uint(guestIndex))){
+         return "This address is not allowed to be involed in this contract";
+       }
+       return "Welcome to the wedding";
+    }
     // function createGuestList() private returns(Guest[] storage){
     //   // create new user
     //   // add to array
@@ -208,10 +237,11 @@ contract Wedding{
         return uint32(uint256(sha256(abi.encodePacked(ticket_coupon, guestName))) % 4294967295);
     }
 
-    function compareStrings (string memory a, string memory b) private returns (bool) {
+    function compareStrings (string memory a, string memory b) view private returns (bool) {
         return (keccak256(abi.encodePacked((a))) == keccak256(abi.encodePacked((b))) );
     }
 }
+
 
 
 
