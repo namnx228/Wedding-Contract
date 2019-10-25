@@ -16,12 +16,11 @@ contract Wedding{
         string postedPersonName;
         uint256 objectionDate;
         uint8 numOfPositiveVote;
-        uint8 numOfNegativeVote;
     }
     enum ObjectionStatus {
         Pending,
         Completed,
-        Rejected
+        Rejected // We may need this someday!?
     }
 
 
@@ -205,10 +204,17 @@ contract Wedding{
         
         uint256 providedName = uint256(sha256(abi.encodePacked(name)));
         if (authenticate(providedName, couponCode) != -1) {
-            object = Objection({reason: reason, postedPersonName: name, objectionDate: now, numOfPositiveVote: 0, numOfNegativeVote: 0});
-            objectionStatus = ObjectionStatus.Pending;
+            object = Objection({reason: reason, postedPersonName: name, objectionDate: now, numOfPositiveVote: 1});
             
-            weddingStatus = "PendingWithObjection";
+            if (object.numOfPositiveVote / listOfGuest.length > objectionVotingThreshold) {
+                objectionStatus = ObjectionStatus.Completed;
+                weddingStatus = "Terminated";
+                return;
+            } else {
+                objectionStatus = ObjectionStatus.Pending;
+                weddingStatus = "PendingWithObjection";    
+            }
+            
         }
     }
     
@@ -246,11 +252,9 @@ contract Wedding{
                 }
             }
             
-            uint totalNumber = listOfGuest.length;
-            if (object.numOfNegativeVote / totalNumber > objectionVotingThreshold) {
+            if (object.numOfPositiveVote / listOfGuest.length > objectionVotingThreshold) {
                 weddingStatus = "Terminated";
                 objectionStatus = ObjectionStatus.Completed;
-                return;
             }
         }
     }

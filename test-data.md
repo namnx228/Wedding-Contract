@@ -10,6 +10,10 @@ For objection!
     reason, name, couponCode
         "We should setup a distributed system on that day", "Arnab", 3532987579
 
+For get objection status!
+    name, couponCoude
+        "Arnab", 3532987579
+
 For objection voting!
     name, couponCode, wannaStop
         "Arnab", 3532987579, true
