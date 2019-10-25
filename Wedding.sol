@@ -15,7 +15,8 @@ contract Wedding{
         string reason;
         string postedPersonName;
         uint256 objectionDate;
-        uint8 numOfVote;
+        uint8 numOfPositiveVote;
+        uint8 numOfNegativeVote;
     }
     enum ObjectionStatus {
         Pending,
@@ -33,11 +34,12 @@ contract Wedding{
 
     mapping (uint256 => uint256) ticketMapping;
     mapping (uint256 => uint256) couponMapping;
+    mapping (uint256 => int8) votingData;
     string private constant ticket = "123yc346tb349v3";
     
     Guest[] listOfGuest;
     
-    ObjectionStatus objectionStatus = NULL;
+    ObjectionStatus objectionStatus;
     Objection object;
     uint8 objectionVotingThreshold;
 
@@ -64,18 +66,6 @@ contract Wedding{
       newGuest=Guest({couponCode: NULL, decision: true, name: "Nam", ticket: NULL, email: "nam@gmail.com", etherumAddress: 0x671afec674940d292804Ecfd7A2AeAbE2bD3f1a0});
       listOfGuest.push(newGuest);
     }
-    
-    //function createGuestList() private returns (Guest[]);
-    //function authenticate(string name, string code) private;
-    //function ticketGeneration() public;
-    //function couponGeneration() private;
-    //function accept(string name, string couponCode) public;
-    //function reject(string name, string couponCode) public;
-    //function login(string name, string ticket) public;
-    //function opposeWedding(string reason, string name, string couponCode ) public; // check objectionStatus
-    //------------------------------------------------ Optional part-----------------------------------
-    //function objectionVoting(string name, string couponCode, bool wannaStop) public;
-    
 
     // Accept function
     function accept(string memory name, uint256 couponCode) public {
@@ -104,6 +94,8 @@ contract Wedding{
         }
         ticketGeneration();
         couponGeneration();
+        
+        objectionVotingThreshold = 5;
     }
     modifier checkWeddingStage(string memory expectedWeddingStatus){
       require(compareStrings(expectedWeddingStatus, weddingStatus), "The wedding has been completed");
@@ -213,10 +205,10 @@ contract Wedding{
         
         uint256 providedName = uint256(sha256(abi.encodePacked(name)));
         if (authenticate(providedName, couponCode) != -1) {
-            object = Objection({reason: reason, postedPersonName: name, objectionDate: now, numOfVote: 0});
+            object = Objection({reason: reason, postedPersonName: name, objectionDate: now, numOfPositiveVote: 0, numOfNegativeVote: 0});
             objectionStatus = ObjectionStatus.Pending;
             
-            weddingStatus = "Terminated";
+            weddingStatus = "PendingWithObjection";
         }
     }
     
@@ -237,11 +229,29 @@ contract Wedding{
     }
    
     function objectionVoting(string memory name, uint256 couponCode, bool wannaStop) public {            
-        require(objectionStatus == ObjectionStatus.Pending, "There must be an objection created to be able to vote!");
+        require(objectionStatus == ObjectionStatus.Pending, "There must be an objection created or not yet terminated to be able to vote!");
         
         uint256 providedName = uint256(sha256(abi.encodePacked(name)));
         if (authenticate(providedName, couponCode) != -1) {
-                
+            int8 currentVote = votingData[providedName];
+            if (wannaStop) {
+                votingData[providedName] = 1;
+                if (currentVote == -1) {
+                    object.numOfPositiveVote += 1;
+                }
+            } else {
+                votingData[providedName] = -1;
+                if (currentVote == 1) {
+                    object.numOfPositiveVote -= 1;
+                }
+            }
+            
+            uint totalNumber = listOfGuest.length;
+            if (object.numOfNegativeVote / totalNumber > objectionVotingThreshold) {
+                weddingStatus = "Terminated";
+                objectionStatus = ObjectionStatus.Completed;
+                return;
+            }
         }
     }
 
