@@ -18,6 +18,7 @@ contract Wedding{
         uint256 numOfPositiveVote;
     }
     enum ObjectionStatus {
+        None,
         Pending,
         Completed,
         Rejected // We may need this someday!?
@@ -200,7 +201,7 @@ contract Wedding{
     }
 
     function opposeWedding(string memory reason, string memory name, uint256 couponCode) public {
-        require(objectionStatus == ObjectionStatus(0), "Relax, there has been arealdy an objection, do you like to vote?");
+        require(objectionStatus == ObjectionStatus.None, "Relax, there has been arealdy an objection, do you like to vote?");
         
         uint256 providedName = uint256(sha256(abi.encodePacked(name)));
         if (authenticate(providedName, couponCode) != -1) {
