@@ -39,7 +39,7 @@ contract Wedding{
     
     Guest[] listOfGuest;
     
-    ObjectionStatus objectionStatus;
+    ObjectionStatus objectionStatus = ObjectionStatus.None;
     Objection object;
     uint8 objectionVotingThreshold;
 
@@ -277,5 +277,3 @@ contract Wedding{
     ////------------------------------------------------ Optional part-----------------------------------
     //function objectionVoting(string name, string couponCode, bool wannaStop) public;
 }
-
-
