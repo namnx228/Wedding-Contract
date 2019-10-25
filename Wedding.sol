@@ -15,7 +15,7 @@ contract Wedding{
         string reason;
         string postedPersonName;
         uint256 objectionDate;
-        uint8 numOfPositiveVote;
+        uint256 numOfPositiveVote;
     }
     enum ObjectionStatus {
         Pending,
@@ -219,20 +219,20 @@ contract Wedding{
         }
     }
     
-    function getObjectionStatus(string memory name, uint256 couponCode) public returns (string memory, string memory){
+    function getObjectionStatus(string memory name, uint256 couponCode) public view returns (string memory, string memory, uint256){
         uint256 providedName = uint256(sha256(abi.encodePacked(name)));
         if (authenticate(providedName, couponCode) != -1) {
             if (objectionStatus == ObjectionStatus.Pending) {
-                return ("Pending Objection", object.reason);
+                return ("Pending Objection", object.reason, object.numOfPositiveVote);
             } else if (objectionStatus == ObjectionStatus.Rejected) {
-                return ("Rejected Objection, Everything is still good!", object.reason);
+                return ("Rejected Objection, Everything is still good!", object.reason, object.numOfPositiveVote);
             } else if (objectionStatus == ObjectionStatus.Completed) {
-                return ("Completed Objection, DONE!", object.reason);
+                return ("Completed Objection, DONE!", object.reason, object.numOfPositiveVote);
             }
-            return ("Everything is still good, I guess!", "");
+            return ("Everything is still good, I guess!", "", 0);
         }
         
-        return ("Hello outsider, thank you for playing with us!", "");
+        return ("Hello outsider, thank you for playing with us!", "", 0);
     }
    
     function objectionVoting(string memory name, uint256 couponCode, bool wannaStop) public {            
