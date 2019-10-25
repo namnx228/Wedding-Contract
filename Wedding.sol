@@ -161,7 +161,7 @@ contract Wedding{
     }
     
     // Authentication (Accept/Reject)
-    function authenticate(string memory name, uint256 code) private returns (int){
+    function authenticate(string memory name, uint256 code) private view returns (int){
         for (uint8 i=0; i<listOfGuest.length; i++){
             //uint256 guestName = uint256(sha256(abi.encodePacked(listOfGuest[i].name)));
             if(compareStrings(name, listOfGuest[i].name) && (listOfGuest[i].couponCode == code)){
@@ -278,7 +278,7 @@ contract Wedding{
     }
 
     ////------------------------------------------------ Utility Functions -----------------------------------
-    function compareStrings (string memory a, string memory b) private returns (bool) {
+    function compareStrings (string memory a, string memory b) private view returns (bool) {
         return (keccak256(abi.encodePacked((a))) == keccak256(abi.encodePacked((b))) );
     }
 
