@@ -178,6 +178,8 @@ contract Wedding{
         //uint256 providedName = uint256(sha256(abi.encodePacked(name)));
         //int matched = authenticate(providedName, couponCode);
         int matched = authenticate(name, couponCode);
+        if (!checkAddress(msg.sender, uint(matched)))
+          return ;
         if (matched != -1){
             listOfGuest[uint256(matched)].decision = true;
             ticketMapping[name] = listOfGuest[uint256(matched)].ticket;
@@ -195,6 +197,8 @@ contract Wedding{
         // hash provided name
         //uint256 providedName = uint256(sha256(abi.encodePacked(name)));
         int matched = authenticate(name, couponCode);
+        if (!checkAddress(msg.sender, uint(matched)))
+          return ;
         if (matched != -1){
             listOfGuest[uint256(matched)].decision = false;
             participationRecord[name] = true;
@@ -233,6 +237,14 @@ contract Wedding{
      function getGuestList() view public returns(Guest[] memory){
        return listOfGuest;
 
+    }
+    function getWeddingStatus() view public returns (string memory){
+      if (weddingStatus == WeddingStatus.Pending)
+        return "Pending";
+      if (weddingStatus == WeddingStatus.Completed)
+        return "Completed";
+
+      return "Terminated";
     }
 
     // show guest ticket details
