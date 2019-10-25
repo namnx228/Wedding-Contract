@@ -38,6 +38,7 @@ contract Wedding{
     uint weddingTimeStart;
     uint weddingTimeEnd;
     address coupleAddress;
+    address coupleAddress2;
     
 
     mapping (string => uint256) ticketMapping;
@@ -114,7 +115,7 @@ contract Wedding{
         ticketGeneration();
         couponGeneration();
         
-        objectionVotingThreshold = 5;
+        objectionVotingThreshold = 50;
     }
     modifier checkWeddingStage(WeddingStatus expectedWeddingStatus, string memory message){
       require(expectedWeddingStatus == weddingStatus, message);
@@ -276,7 +277,7 @@ contract Wedding{
             object = Objection({reason: reason, postedPersonName: name, objectionDate: now, numOfPositiveVote: 1});
             
             votingData[providedName] = 1;
-            if (object.numOfPositiveVote / listOfGuest.length > objectionVotingThreshold) {
+            if (object.numOfPositiveVote * 100 / listOfGuest.length > objectionVotingThreshold) {
                 objectionStatus = ObjectionStatus.Completed;
                 weddingStatus = WeddingStatus.Terminated;
                 return;
@@ -304,10 +305,7 @@ contract Wedding{
         
         return ("Hello outsider, thank you for playing with us!", "", 0);
     }
-
-    // status
-    // date
-    // public address
+    
     modifier checkCoupleAddress(){
       require(weddingStatus == WeddingStatus.Pending || weddingStatus == WeddingStatus.PendingWithObjection, "Wedding ceremony is not happening");
       require(block.timestamp > weddingTimeEnd, "Too soon to complete the wedding");
@@ -319,6 +317,15 @@ contract Wedding{
         weddingStatus = WeddingStatus.Completed;
     }
 
+    
+    function getCurrentVote(string memory name, uint256 couponCode) view public returns(int8, uint256) {
+        if (authenticate(name, couponCode) != -1) {
+            uint256 providedName = uint256(sha256(abi.encodePacked(name)));
+            return (votingData[providedName], object.numOfPositiveVote);
+        }
+        return (0,0);
+    }
+   
     function objectionVoting(string memory name, uint256 couponCode, bool wannaStop) public {            
         require(objectionStatus == ObjectionStatus.Pending, "There must be an objection created or not yet terminated to be able to vote!");
         
@@ -328,17 +335,17 @@ contract Wedding{
             int8 currentVote = votingData[providedName];
             if (wannaStop) {
                 votingData[providedName] = 1;
-                if (currentVote == -1) {
+                if (currentVote != 1) {
                     object.numOfPositiveVote += 1;
                 }
             } else {
                 votingData[providedName] = -1;
-                if (currentVote == 1) {
+                if (currentVote != -1) {
                     object.numOfPositiveVote -= 1;
                 }
             }
             
-            if (object.numOfPositiveVote / listOfGuest.length > objectionVotingThreshold) {
+            if (object.numOfPositiveVote * 100 / listOfGuest.length > objectionVotingThreshold) {
                 weddingStatus = WeddingStatus.Terminated;
                 objectionStatus = ObjectionStatus.Completed;
             }
