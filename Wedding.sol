@@ -36,8 +36,6 @@ contract Wedding{
     WeddingStatus weddingStatus; //{Pending / Completed / Terminated / PendingWithObjection }
     uint weddingTimeStart;
     uint weddingTimeEnd;
-    address coupleAddress;
-    address coupleAddress2;    
 
     mapping (string => uint256) ticketMapping;
     mapping (string => uint256) couponMapping;
@@ -58,10 +56,8 @@ contract Wedding{
     bool doesWifeAgreeToComplete = false;
     bool doesHusbandAgreeToComplete = false;
 
-    constructor(Guest[] memory guestList ) public {
+    constructor(address wifeAddress, address husbandAddress, Guest[] memory guestList ) public {
         eventName = "Khiem - Ngoc wedding";
-        // husbandName = "Khiem";
-        // wifeName = "Ngoc";
         coupleName = "Khiem - Ngoc";
         location = "WC";
         weddingStatus = WeddingStatus.Pending;
@@ -70,12 +66,8 @@ contract Wedding{
         weddingTimeEnd = 1572307200; // 10/29/2019 -- 0:0:0
         paticipantCount = 0;
         
-        //coupleAddress = 0x86CEfcde6fb206629ea9D064Df31836EF1D1D648;
-        
-        coupleAddress = 0xCA35b7d915458EF540aDe6068dFe2F44E8fa733c; // Test address;
-        wifeAddress = 0xCA35b7d915458EF540aDe6068dFe2F44E8fa733c;
-        husbandAddress = 0xdD870fA1b7C4700F2BD7f44238821C26f7392148;
-        // coupleAddress2 = 0xdD870fA1b7C4700F2BD7f44238821C26f7392148;
+        wifeAddress = wifeAddress;
+        husbandAddress = husbandAddress;
         
         for(uint i = 0; i < guestList.length; i++){
             listOfGuest.push(guestList[i]);
@@ -86,10 +78,7 @@ contract Wedding{
         
         ticketGeneration();
 
-        // couponGeneration();
-        
-        
-        objectionVotingThreshold = 50;
+        objectionVotingThreshold = 50; //50%
     }
     modifier checkWeddingStage(WeddingStatus expectedWeddingStatus, string memory message){
       require(expectedWeddingStatus == weddingStatus, message);
@@ -312,7 +301,7 @@ contract Wedding{
     
     modifier checkCoupleAddress(){
       require(weddingStatus == WeddingStatus.Pending || weddingStatus == WeddingStatus.PendingWithObjection, "Wedding ceremony is not happening");
-    //   require(block.timestamp > weddingTimeEnd, "Too soon to complete the wedding");
+      require(block.timestamp > weddingTimeEnd, "Too soon to complete the wedding");
       _;
     }
     
