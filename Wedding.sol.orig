@@ -113,6 +113,11 @@ contract Wedding{
       }
       return -1;
     }
+<<<<<<< HEAD
+
+=======
+    
+>>>>>>> master
     function checkIn(string memory guestname, int256 guestticket) view private returns(bool){
        int guestIndex = getGuest(guestname, guestticket);
        if (guestIndex == -1 )
@@ -140,7 +145,11 @@ contract Wedding{
         paticipantCount++;
     }
 
+<<<<<<< HEAD
     function weddingInfo(string memory name) view public returns(string memory, string memory, //Name of the couple
+=======
+    function weddingInfo() view public returns(string memory, string memory, //Name of the couple
+>>>>>>> master
                                                string memory, string memory, // Location
                                                string memory, string memory, // Date
                                                string memory, uint, // Num of paticipant
@@ -154,6 +163,20 @@ contract Wedding{
               "Number of paticipants: ", paticipantCount,
               "Status of the wedding: ", getWeddingStatus() );
     }
+<<<<<<< HEAD
+=======
+    
+    // Authentication (Accept/Reject)
+    //function authenticate(string memory name) private view returns (int){
+    //    for (uint8 i=0; i<listOfGuest.length; i++){
+    //        //uint256 guestName = uint256(sha256(abi.encodePacked(listOfGuest[i].name)));
+    //        if(compareStrings(name, listOfGuest[i].name) && (listOfGuest[i].etherumAddress == msg.sender)){
+    //            return i;
+    //        }
+    //    }
+    //    return -1;
+    //}
+>>>>>>> master
 
     // ticket generation
     function ticketGeneration() private {
@@ -161,7 +184,13 @@ contract Wedding{
             listOfGuest[i].ticket = random(i,"ticket");
         }
     }
+<<<<<<< HEAD
+    
+     function getGuestList() view public returns(Guest[] memory){
+=======
+
     function getGuestList() view public returns(Guest[] memory){
+>>>>>>> master
        return listOfGuest;
 
     }
@@ -184,7 +213,37 @@ contract Wedding{
         string memory guestName = listOfGuest[index].name;
         return uint32(uint256(sha256(abi.encodePacked(ticket_coupon, guestName))) % 4294967295);
     }
+
+<<<<<<< HEAD
+    function opposeWedding(string memory reason, string memory name) 
+                          authenticate(name, "Relax, there has been arealdy an objection, do you like to vote?")public {
+            require(objectionStatus == ObjectionStatus.None, "Relax, there has been arealdy an objection, do you like to vote?");
+            
+            uint256 providedName = uint256(sha256(abi.encodePacked(name)));
+            object = Objection({reason: reason, postedPersonName: name, objectionDate: now, numOfPositiveVote: 1});
+            
+            votingData[providedName] = 1;
+            if (object.numOfPositiveVote * 100 / listOfGuest.length > objectionVotingThreshold) {
+                objectionStatus = ObjectionStatus.Completed;
+                weddingStatus = WeddingStatus.Terminated;
+                return;
+            } else {
+                objectionStatus = ObjectionStatus.Pending;
+                weddingStatus = WeddingStatus.PendingWithObjection;    
+            }
+    }
     
+    function getObjectionStatus(string memory name) 
+                                authenticate(name, "You cannot vote with wrong credential") public view returns (string memory, string memory, uint256){
+            if (objectionStatus == ObjectionStatus.Pending) {
+                return ("Pending Objection", object.reason, object.numOfPositiveVote);
+            } else if (objectionStatus == ObjectionStatus.Rejected) {
+                return ("Rejected Objection, Everything is still good!", object.reason, object.numOfPositiveVote);
+            } else if (objectionStatus == ObjectionStatus.Completed) {
+                return ("Completed Objection, DONE!", object.reason, object.numOfPositiveVote);
+            }
+            return ("Everything is still good, I guess!", "", 0);
+=======
     function opposeWedding(string memory reason, string memory name) authenticate(name, "Unauthorized!")public {
         require(objectionStatus == ObjectionStatus.None, "Relax, there has been arealdy an objection, do you like to vote?");
         
@@ -241,6 +300,7 @@ contract Wedding{
                 object.numOfPositiveVote -= 1;
             }
         }
+>>>>>>> master
         
         if (object.numOfPositiveVote * 100 / listOfGuest.length > objectionVotingThreshold) {
             weddingStatus = WeddingStatus.Terminated;
@@ -259,6 +319,13 @@ contract Wedding{
         weddingStatus = WeddingStatus.Completed;
     }
 
+<<<<<<< HEAD
+    function getCurrentVote(string memory name) 
+                            authenticate(name, "You cannot vote with wrong credential") view public returns(int8, uint256) {
+            uint256 providedName = uint256(sha256(abi.encodePacked(name)));
+            return (votingData[providedName], object.numOfPositiveVote);
+        return (0,0);
+    }
 
     function terminate()  public {
         if  (! (msg.sender == wifeAddress || msg.sender == husbandAddress))
@@ -267,9 +334,44 @@ contract Wedding{
   
    } 
    
+    function objectionVoting(string memory name, bool wannaStop)
+                              authenticate(name, "You cannot vote with wrong credential") public {            
+            require(objectionStatus == ObjectionStatus.Pending, "There must be an objection created or not yet terminated to be able to vote!");
+            uint256 providedName = uint256(sha256(abi.encodePacked(name)));
+            int8 currentVote = votingData[providedName];
+            if (wannaStop) {
+                votingData[providedName] = 1;
+                if (currentVote != 1) {
+                    object.numOfPositiveVote += 1;
+                }
+            } else {
+                votingData[providedName] = -1;
+                if (currentVote != -1) {
+                    object.numOfPositiveVote -= 1;
+                }
+            }
+            
+            if (object.numOfPositiveVote * 100 / listOfGuest.length > objectionVotingThreshold) {
+                weddingStatus = WeddingStatus.Terminated;
+                objectionStatus = ObjectionStatus.Completed;
+            }
+    }
+
+=======
+>>>>>>> master
     ////------------------------------------------------ Utility Functions -----------------------------------
     function compareStrings (string memory a, string memory b) private view returns (bool) {
         return (keccak256(abi.encodePacked((a))) == keccak256(abi.encodePacked((b))) );
     }
+<<<<<<< HEAD
 }
 
+
+
+
+
+
+
+=======
+}
+>>>>>>> master
