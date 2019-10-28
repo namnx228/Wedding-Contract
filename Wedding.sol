@@ -108,7 +108,6 @@ contract Wedding{
     modifier authenticate(string memory name, string memory message){
       require(compareStrings(address2name[msg.sender], name), message);
       _;
-      // require(address2name[msg.sender] == name);
     }
     
     function getGuest(string  memory guestname, int256  guestticket) view private returns (int){
@@ -121,15 +120,6 @@ contract Wedding{
       }
       return -1;
     }
-
-    //function checkAddress(address senderAddress, uint index) view public returns(bool){
-    ////function login(string name, uint256 ticket) public {
-    //  if (senderAddress == listOfGuest[index].etherumAddress){
-    //    // if the guest don't have account or they use the registered address to pay for the transaction then TRUE
-    //    return true;
-    //  }
-    //  return false;
-    //}
     
     function checkIn(string memory guestname, int256 guestticket) view private returns(bool){
        int guestIndex = getGuest(guestname, guestticket);
@@ -207,21 +197,6 @@ contract Wedding{
               "Status of the wedding: ", getWeddingStatus() );
 
     }
-
-    // Reject function
-    //function reject(string memory name, uint256 couponCode) 
-    //    checkWeddingStage(WeddingStatus.Pending,"You are not allowed to accept the invitation anymore.") 
-    //    checkParticipationRecord(name,"You have already confirmed whether you will participate or not.") public {
-    //    // hash provided name
-    //    //uint256 providedName = uint256(sha256(abi.encodePacked(name)));
-    //    int matched = authenticate(name, couponCode);
-    //    if (!checkAddress(msg.sender, uint(matched)))
-    //      return ;
-    //    if (matched != -1){
-    //        listOfGuest[uint256(matched)].decision = false;
-    //        participationRecord[name] = true;
-    //    }
-    //}
     
     // Authentication (Accept/Reject)
     //function authenticate(string memory name) private view returns (int){
@@ -242,18 +217,8 @@ contract Wedding{
             //ticketMapping[providedName] = listOfGuest[i].ticket;
         }
     }
-    
-    
-    // coupon generation
-    //function couponGeneration() private {
-    //    for (uint256 i = 0; i < listOfGuest.length ; i++){
-    //        //uint256 providedName = uint256(sha256(abi.encodePacked(listOfGuest[i].name)));
-    //        listOfGuest[i].couponCode = random(i,"coupon");
-    //        couponMapping[listOfGuest[i].name] = listOfGuest[i].couponCode;
-    //    }
-    //}
 
-     function getGuestList() view public returns(Guest[] memory){
+    function getGuestList() view public returns(Guest[] memory){
        return listOfGuest;
 
     }
@@ -271,12 +236,6 @@ contract Wedding{
         //uint256 providedName = uint256(sha256(abi.encodePacked(name)));
         return ticketMapping[name];
     }
-    
-    // show guest coupon details
-    //function guestCoupon(string memory name) view public returns (uint256){
-    //    //uint256 providedName = uint256(sha256(abi.encodePacked(name)));
-    //    return couponMapping[name];
-    //}
     
     // random number generation
     function random(uint256 index, string memory ticket_coupon) private view returns (uint32) {
