@@ -4,29 +4,29 @@ Ropsten testnet address!
         Password: 12345678
         Contract ID: 0x86CEfcde6fb206629ea9D064Df31836EF1D1D648
 
-For guestCouponCode!
+For guest!
     name
         "Arnab"
 
 For accept!
-    name, couponCode
+    name
         "Arnab", 3532987579
 
 For creating objection!
-    reason, name, couponCode
-        "We should setup a distributed system on that day", "Arnab", 3532987579
+    reason, name
+        "We should setup a distributed system on that day", "Arnab"
 
 For get objection status!
     name, couponCoude
-        "Arnab", 3532987579
-        "Nam", 2139654046
-        "Shamim", 2015368078
+        "Arnab"
+        "Nam"
+        "Shamim"
 
 For objection voting!
-    name, couponCode, wannaStop
-        "Arnab", 3532987579, true
-        "Shamim", 2015368078, true
-        "Nam", 2139654046, true
+    name, wannaStop
+        "Arnab", true
+        "Shamim", true
+        "Nam", true
 
 For publishing the contract!
     [["Arnab", 0, 0, 0, "arnab@gmail.com","0x81549c1746d2Ce0ACd15470104EBc62B7a104fa6"], ["Nam", 0 ,0,0, "nam@gmail.com", "0x671afec674940d292804Ecfd7A2AeAbE2bD3f1a0"], ["Shamim", 0, 0, 0, "shamim@gmail.com","0x671afec674940d292804Ecfd7A2AeAbE2bD3f1a0"] ]
