@@ -55,6 +55,8 @@ contract Wedding{
     mapping (string => uint) name2index;
     address wifeAddress;
     address husbandAddress;
+    bool doesWifeAgreeToComplete = false;
+    bool doesHusbandAgreeToComplete = false;
 
     constructor(Guest[] memory guestList ) public {
         eventName = "Khiem - Ngoc wedding";
@@ -71,8 +73,8 @@ contract Wedding{
         //coupleAddress = 0x86CEfcde6fb206629ea9D064Df31836EF1D1D648;
         
         coupleAddress = 0xCA35b7d915458EF540aDe6068dFe2F44E8fa733c; // Test address;
-        wifeAddress = 0x4B0897b0513fdC7C541B6d9D7E929C4e5364D2dB;
-        husbandAddress = 0x583031D1113aD414F02576BD6afaBfb302140225;
+        wifeAddress = 0xCA35b7d915458EF540aDe6068dFe2F44E8fa733c;
+        husbandAddress = 0xdD870fA1b7C4700F2BD7f44238821C26f7392148;
         // coupleAddress2 = 0xdD870fA1b7C4700F2BD7f44238821C26f7392148;
         
         for(uint i = 0; i < guestList.length; i++){
@@ -310,13 +312,24 @@ contract Wedding{
     
     modifier checkCoupleAddress(){
       require(weddingStatus == WeddingStatus.Pending || weddingStatus == WeddingStatus.PendingWithObjection, "Wedding ceremony is not happening");
-      require(block.timestamp > weddingTimeEnd, "Too soon to complete the wedding");
-      require(msg.sender == coupleAddress, "You cannot complete the wedding using this address");
+    //   require(block.timestamp > weddingTimeEnd, "Too soon to complete the wedding");
       _;
     }
     
-    function completeTheWedding() checkCoupleAddress public{
-        weddingStatus = WeddingStatus.Completed;
+    function completeTheWedding() checkCoupleAddress public {
+        require(msg.sender == wifeAddress || msg.sender == husbandAddress, "Unauthorized!");
+        
+        if (msg.sender == wifeAddress) {
+            doesWifeAgreeToComplete = true;
+        }
+        
+        if (msg.sender == husbandAddress) {
+            doesHusbandAgreeToComplete = true;
+        }
+        
+        if (doesHusbandAgreeToComplete && doesWifeAgreeToComplete) {
+            weddingStatus = WeddingStatus.Completed;
+        }
     }
 
     ////------------------------------------------------ Utility Functions -----------------------------------
