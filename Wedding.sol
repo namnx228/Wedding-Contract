@@ -13,6 +13,7 @@ contract Wedding{
     struct Objection{
         string reason;
         string postedPersonName;
+        address postedPersonAddress;
         uint256 objectionDate;
         uint256 numOfPositiveVote;
     }
@@ -234,13 +235,12 @@ contract Wedding{
             require(objectionStatus == ObjectionStatus.None, "Relax, there has been arealdy an objection, do you like to vote?");
             
             uint256 providedName = uint256(sha256(abi.encodePacked(name)));
-            object = Objection({reason: reason, postedPersonName: name, objectionDate: now, numOfPositiveVote: 1});
+            object = Objection({reason: reason, postedPersonName: name, postedPersonAddress: msg.sender, objectionDate: now, numOfPositiveVote: 1});
             
             votingData[providedName] = 1;
             if (object.numOfPositiveVote * 100 / listOfGuest.length > objectionVotingThreshold) {
                 objectionStatus = ObjectionStatus.Completed;
                 weddingStatus = WeddingStatus.Terminated;
-                return;
             } else {
                 objectionStatus = ObjectionStatus.Pending;
                 weddingStatus = WeddingStatus.PendingWithObjection;    
@@ -294,6 +294,7 @@ contract Wedding{
         
         if (checkAddress(msg.sender, uint(matched))) {
             require(objectionStatus == ObjectionStatus.Pending, "There must be an objection created or not yet terminated to be able to vote!");
+            require(object.postedPersonAddress != msg.sender, "Sorry, Voting option is not supported for the objection creator!!");
             
             uint256 providedName = uint256(sha256(abi.encodePacked(name)));
             int8 currentVote = votingData[providedName];
