@@ -59,7 +59,7 @@ contract Wedding{
     constructor(address wifeAddress, address husbandAddress, Guest[] memory guestList ) public {
         eventName = "Khiem - Ngoc wedding";
         coupleName = "Khiem - Ngoc";
-        location = "WC";
+        location = "Moholt";
         weddingStatus = WeddingStatus.Pending;
         
         weddingTimeStart = 1571961600; // 10/25/2019 -- 0:0:0
@@ -71,7 +71,6 @@ contract Wedding{
         
         for(uint i = 0; i < guestList.length; i++){
             listOfGuest.push(guestList[i]);
-            // name2address[guestList[i].name] = gue
             address2name[guestList[i].etherumAddress] = guestList[i].name;
             name2index[guestList[i].name] = i;
         }
@@ -97,7 +96,9 @@ contract Wedding{
     }
 
     modifier authenticate(string memory name, string memory message){
-      require(compareStrings(address2name[msg.sender], name), message);
+      
+      require(bytes(name).length != 0 && compareStrings(address2name[msg.sender], name), message);
+      //require();
       _;
     }
     
@@ -111,7 +112,6 @@ contract Wedding{
       }
       return -1;
     }
-    
     function checkIn(string memory guestname, int256 guestticket) view private returns(bool){
        int guestIndex = getGuest(guestname, guestticket);
        if (guestIndex == -1 )
@@ -133,82 +133,33 @@ contract Wedding{
         checkWeddingStage(WeddingStatus.Pending,"You are not allowed to accept the invitation anymore.") 
         checkParticipationRecord(name,"You have already confirmed whether you will participate or not.")
         authenticate(name, "This address is not allowed to join the contract") public {
-        // hash provided name
-        //uint256 providedName = uint256(sha256(abi.encodePacked(name)));
-        //int matched = authenticate(providedName, couponCode);
-        //int matched = authenticate(name);
-        // if (!checkAddress(msg.sender, uint(matched)))
-        //   return ;
-        //if (matched != -1){
-            // listOfGuest[uint256(matched)].decision = true;
-            uint index = name2index[name];
-            ticketMapping[name] = listOfGuest[uint256(index)].ticket;
-            participationRecord[name] = true;
-            paticipantCount++;
-            
-            //ticketMapping[providedName] = listOfGuest[uint256(matched)].ticket;
-            //return listOfGuest[uint256(matched)].ticket;
-            //return guestTicket(uint256(matched));
-        //}
+        uint index = name2index[name];
+        ticketMapping[name] = listOfGuest[uint256(index)].ticket;
+        participationRecord[name] = true;
+        paticipantCount++;
     }
-    // num of paticipants
-    // status of wedding
-    // Date of the wedding
-    // Name of the couple
-    // Location
-    //mapping (string => string) title2value;
-    //struct Info{
-    //    string title;
-    //    string value;
-    //}
-    ////Info[] memory info;
-    //function weddingInfo() view public returns (Info[2] memory){
-    // // Info = new Info[5];
-    //  Info[2] memory info;
-    //  info[0].title = "Number of paticipants"; info[0].value = string(paticipantCount);
-    //  info[1].title = "Name of"; info[1].value = "naasdsf";
-    //  return info;
-    //}
 
-    function weddingInfo() view public returns(string memory, string memory, //Name of the couple
+    function weddingInfo(string memory name) view public returns(string memory, string memory, //Name of the couple
                                                string memory, string memory, // Location
                                                string memory, string memory, // Date
                                                string memory, uint, // Num of paticipant
                                                string memory, string memory){ // Status
-        //mapping (string => string) storage title2value;
-        //title2value["Name of the couple"] = coupleName;
-        //return title2value;
-       // info memory testInfo;
-       // testInfo.title = "Title";
-       // testInfo.value = "value";
+       require(bytes(name).length != 0 && 
+                    (compareStrings(address2name[msg.sender], name) 
+                    || msg.sender == wifeAddress || msg.sender == husbandAddress), "You cannot view this information");
        return ("Name of the couple: ", coupleName, 
               "Location: ", location, 
               "Date: ", "11/04/2019",
               "Number of paticipants: ", paticipantCount,
               "Status of the wedding: ", getWeddingStatus() );
-
     }
-    
-    // Authentication (Accept/Reject)
-    //function authenticate(string memory name) private view returns (int){
-    //    for (uint8 i=0; i<listOfGuest.length; i++){
-    //        //uint256 guestName = uint256(sha256(abi.encodePacked(listOfGuest[i].name)));
-    //        if(compareStrings(name, listOfGuest[i].name) && (listOfGuest[i].etherumAddress == msg.sender)){
-    //            return i;
-    //        }
-    //    }
-    //    return -1;
-    //}
 
     // ticket generation
     function ticketGeneration() private {
         for (uint256 i = 0; i < listOfGuest.length ; i++){
-            //uint256 providedName = uint256(sha256(abi.encodePacked(listOfGuest[i].name)));
             listOfGuest[i].ticket = random(i,"ticket");
-            //ticketMapping[providedName] = listOfGuest[i].ticket;
         }
     }
-
     function getGuestList() view public returns(Guest[] memory){
        return listOfGuest;
 
@@ -224,18 +175,15 @@ contract Wedding{
 
     // show guest ticket details
     function guestTicket(string memory name) view public returns (uint256){
-        //uint256 providedName = uint256(sha256(abi.encodePacked(name)));
         return ticketMapping[name];
     }
     
     // random number generation
     function random(uint256 index, string memory ticket_coupon) private view returns (uint32) {
-        //return uint32(sha256(block.timestamp) % 4294967295);
         string memory guestName = listOfGuest[index].name;
-        //return uint32(uint256(sha256(listOfGuest[index].name)) % 4294967295);
         return uint32(uint256(sha256(abi.encodePacked(ticket_coupon, guestName))) % 4294967295);
     }
-
+    
     function opposeWedding(string memory reason, string memory name) authenticate(name, "Unauthorized!")public {
         require(objectionStatus == ObjectionStatus.None, "Relax, there has been arealdy an objection, do you like to vote?");
         
@@ -321,8 +269,17 @@ contract Wedding{
         }
     }
 
+
+    function terminate()  public {
+        if  (! (msg.sender == wifeAddress || msg.sender == husbandAddress))
+            return ;
+       weddingStatus = WeddingStatus.Terminated;
+  
+   } 
+   
     ////------------------------------------------------ Utility Functions -----------------------------------
     function compareStrings (string memory a, string memory b) private view returns (bool) {
         return (keccak256(abi.encodePacked((a))) == keccak256(abi.encodePacked((b))) );
     }
 }
+
