@@ -12,13 +12,11 @@ contract Wedding{
                                                 string memory, uint, // Num of paticipant
                                                 string memory, string memory);
 
-    function getWeddingStatus() view public returns (string memory);
-
     function getGuestTicket(string memory name) view public returns (uint256);
 
     function opposeTheWedding(string memory reason, string memory name) public;
 
-    function getObjectionStatus(string memory name) public view returns (string memory, string memory, uint256);
+    function getObjectionStatus(string memory name) public view returns (string memory, string memory, uint256, uint256, uint8);
 
     function getCurrentVote(string memory name) view public returns(int8, uint256);
 

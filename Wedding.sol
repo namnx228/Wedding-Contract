@@ -164,9 +164,12 @@ contract Wedding{
        return listOfGuest;
 
     }
-    function getWeddingStatus() view public returns (string memory){
+
+    function getWeddingStatus() view private returns (string memory){
       if (weddingStatus == WeddingStatus.Pending)
         return "Pending";
+      if (weddingStatus == WeddingStatus.PendingWithObjection)
+        return "PendingWithObjection";
       if (weddingStatus == WeddingStatus.Completed)
         return "Completed";
 
@@ -202,16 +205,16 @@ contract Wedding{
     }
     
     function getObjectionStatus(string memory name) 
-                                authenticate(name, "Unauthorized!") public view returns (string memory, string memory, uint256){
+                                authenticate(name, "Unauthorized!") public view returns (string memory, string memory, uint256, uint256, uint8){
         
         if (objectionStatus == ObjectionStatus.Pending) {
-            return ("Pending Objection", object.reason, object.numOfPositiveVote);
+            return ("Pending Objection", object.reason, object.numOfPositiveVote, listOfGuest.length, objectionVotingThreshold);
         } else if (objectionStatus == ObjectionStatus.Rejected) {
-            return ("Rejected Objection, Everything is still good!", object.reason, object.numOfPositiveVote);
+            return ("Rejected Objection, Everything is still good!", object.reason, object.numOfPositiveVote, listOfGuest.length, objectionVotingThreshold);
         } else if (objectionStatus == ObjectionStatus.Completed) {
-            return ("Completed Objection, DONE!", object.reason, object.numOfPositiveVote);
+            return ("Completed Objection, DONE!", object.reason, object.numOfPositiveVote, listOfGuest.length, objectionVotingThreshold);
         }
-        return ("Everything is still good, I guess!", "", 0);
+        return ("Everything is still good, I guess!", "", 0, 0, 0);
 
     }
     
