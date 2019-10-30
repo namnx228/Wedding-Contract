@@ -56,7 +56,7 @@ contract Wedding{
     bool doesWifeAgreeToComplete = false;
     bool doesHusbandAgreeToComplete = false;
 
-    constructor(address wifeAddress, address husbandAddress, Guest[] memory guestList ) public {
+    constructor(address wifeAddress1, address husbandAddress1, Guest[] memory guestList ) public {
         eventName = "Khiem - Ngoc wedding";
         coupleName = "Khiem - Ngoc";
         location = "Moholt";
@@ -66,8 +66,8 @@ contract Wedding{
         weddingTimeEnd = 1572307200; // 10/29/2019 -- 0:0:0
         paticipantCount = 0;
         
-        wifeAddress = wifeAddress;
-        husbandAddress = husbandAddress;
+        wifeAddress = wifeAddress1;
+        husbandAddress = husbandAddress1;
         
         for(uint i = 0; i < guestList.length; i++){
             listOfGuest.push(guestList[i]);
