@@ -43,15 +43,5 @@ For objection voting!
         "Nam", true
 
 For publishing the contract!
-    [["Arnab", 0, 0, 0, "arnab@gmail.com","0x81549c1746d2Ce0ACd15470104EBc62B7a104fa6"], ["Nam", 0 ,0,0, "nam@gmail.com", "0x671afec674940d292804Ecfd7A2AeAbE2bD3f1a0"], ["Shamim", 0, 0, 0, "shamim@gmail.com","0x671afec674940d292804Ecfd7A2AeAbE2bD3f1a0"] ]
-
-    [["Arnab", 0, 0, 0, "arnab@gmail.com","0x583031D1113aD414F02576BD6afaBfb302140225"], ["Nam", 0 ,0,0, "nam@gmail.com", "0x4B0897b0513fdC7C541B6d9D7E929C4e5364D2dB"], ["Shamim", 0, 0, 0, "shamim@gmail.com","0x14723A09ACff6D2A60DcdF7aA4AFf308FDDC160C"] ]
-
-    "0xCA35b7d915458EF540aDe6068dFe2F44E8fa733c", "0xdD870fA1b7C4700F2BD7f44238821C26f7392148", [["Arnab", 0, 0, 0, "arnab@gmail.com",
-    "0x583031D1113aD414F02576BD6afaBfb302140225"], ["Nam", 0 ,0,0, "nam@gmail.com", "0x4B0897b0513fdC7C541B6d9D7E929C4e5364D2dB"], ["Shamim", 0, 0, 0, "shamim@gmail.com","0x14723A09ACff6D2A60DcdF7aA4AFf308FDDC160C"] ]
-
-    "0xdD870fA1b7C4700F2BD7f44238821C26f7392148", "0x78d96fAbAc0FB428566271184554c9520feA52Df", [["Nam", 0 ,0,0, "nam@gmail.com", "0x5457dFb8F9637b59Bed00A1C6A452841197D4f61"]]
-
+    For Ropsten testnet
     "0xdD870fA1b7C4700F2BD7f44238821C26f7392148", "0x78d96fAbAc0FB428566271184554c9520feA52Df", [["Nam", 0 ,0,0, "nam@gmail.com", "0x5457dFb8F9637b59Bed00A1C6A452841197D4f61"], ["arnab@gmail.com","0x8b491cef0f4E881D5497A11CF92b577F5182da53"], ["Shamim", 0, 0, 0, "shamim@gmail.com","0xDB282b79e4F8C5D9229d7A95Bf7960A9F9D5ED70"], ["Tolgahan", 0, 0, 0, "tolgahan@gmail.com","0x5334a479fE305DB97fa7Bf496d17C9ccA7685eFa"]]
-
-    
