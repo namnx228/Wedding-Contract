@@ -62,8 +62,8 @@ contract Wedding{
         location = "Moholt";
         weddingStatus = WeddingStatus.Pending;
         
-        weddingTimeStart = 1571961600; // 10/25/2019 -- 0:0:0
-        weddingTimeEnd = 1572307200; // 10/29/2019 -- 0:0:0
+        weddingTimeStart = 1572393600; // 10/30/2019 -- 0:0:0
+        weddingTimeEnd = 1572480000; // 10/31/2019 -- 0:0:0
         paticipantCount = 0;
         
         wifeAddress = wifeAddress1;
@@ -79,11 +79,12 @@ contract Wedding{
 
         objectionVotingThreshold = 50; //50%
     }
-    modifier checkWeddingStage(WeddingStatus expectedWeddingStatus, string memory message){
-      require(expectedWeddingStatus == weddingStatus, message);
+    modifier isStatePending(string memory message){
+      require(weddingStatus == WeddingStatus.Pending || weddingStatus == WeddingStatus.PendingWithObjection , message);
       _;
     }
-
+    
+   
     modifier checkParticipationRecord(string memory name, string memory message){
         require(participationRecord[name] == false, message);
         _;
@@ -119,7 +120,7 @@ contract Wedding{
        return true;
     }
 
-    function login(string memory guestname, int256  guestticket) checkWeddingStage(WeddingStatus.Pending, "Go out") 
+    function login(string memory guestname, int256  guestticket) isStatePending("You cannot login anymore as wedding has been completed or terminated") 
                   isBigDay
                   authenticate(guestname,"This address is not allowed to be involed in this contract" ) view public returns (string memory){
        if (checkIn(guestname, guestticket))
@@ -130,7 +131,7 @@ contract Wedding{
     
     // Accept function
     function acceptTheWedding(string memory name) 
-        checkWeddingStage(WeddingStatus.Pending,"You are not allowed to accept the invitation anymore.") 
+        isStatePending("You are not allowed to accept the invitation anymore.") 
         checkParticipationRecord(name,"You have already confirmed whether you will participate or not.")
         authenticate(name, "This address is not allowed to join the contract") public {
         uint index = name2index[name];
@@ -187,7 +188,7 @@ contract Wedding{
         return uint32(uint256(sha256(abi.encodePacked(ticket_coupon, guestName))) % 4294967295);
     }
     
-    function opposeWedding(string memory reason, string memory name) authenticate(name, "Unauthorized!")public {
+    function opposeTheWedding(string memory reason, string memory name) authenticate(name, "Unauthorized!")public {
         require(objectionStatus == ObjectionStatus.None, "Relax, there has been arealdy an objection, do you like to vote?");
         
         uint256 providedName = uint256(sha256(abi.encodePacked(name)));
@@ -285,4 +286,5 @@ contract Wedding{
         return (keccak256(abi.encodePacked((a))) == keccak256(abi.encodePacked((b))) );
     }
 }
+
 
