@@ -129,7 +129,7 @@ contract Wedding{
     
     
     // Accept function
-    function accept(string memory name) 
+    function acceptTheWedding(string memory name) 
         checkWeddingStage(WeddingStatus.Pending,"You are not allowed to accept the invitation anymore.") 
         checkParticipationRecord(name,"You have already confirmed whether you will participate or not.")
         authenticate(name, "This address is not allowed to join the contract") public {
@@ -139,7 +139,7 @@ contract Wedding{
         paticipantCount++;
     }
 
-    function weddingInfo(string memory name) view public returns(string memory, string memory, //Name of the couple
+    function getWeddingInfo(string memory name) view public returns(string memory, string memory, //Name of the couple
                                                string memory, string memory, // Location
                                                string memory, string memory, // Date
                                                string memory, uint, // Num of paticipant
@@ -174,7 +174,7 @@ contract Wedding{
     }
 
     // show guest ticket details
-    function guestTicket(string memory name) view public returns (uint256){
+    function getGuestTicket(string memory name) view public returns (uint256){
         return ticketMapping[name];
     }
     
@@ -184,7 +184,7 @@ contract Wedding{
         return uint32(uint256(sha256(abi.encodePacked(ticket_coupon, guestName))) % 4294967295);
     }
     
-    function opposeWedding(string memory reason, string memory name) authenticate(name, "Unauthorized!")public {
+    function opposeTheWedding(string memory reason, string memory name) authenticate(name, "Unauthorized!")public {
         require(objectionStatus == ObjectionStatus.None, "Relax, there has been arealdy an objection, do you like to vote?");
         
         uint256 providedName = uint256(sha256(abi.encodePacked(name)));
@@ -221,7 +221,7 @@ contract Wedding{
         return (votingData[providedName], object.numOfPositiveVote);
     }
 
-   function objectionVoting(string memory name, bool wannaStop)
+   function voteForObjection(string memory name, bool wannaStop)
                               authenticate(name, "You cannot vote with wrong credential") public {            
         
         require(objectionStatus == ObjectionStatus.Pending, "There must be an objection created or not yet terminated to be able to vote!");
@@ -270,7 +270,7 @@ contract Wedding{
     }
 
 
-    function terminate()  public {
+    function terminateTheWedding()  public {
         if  (! (msg.sender == wifeAddress || msg.sender == husbandAddress))
             return ;
        weddingStatus = WeddingStatus.Terminated;
