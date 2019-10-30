@@ -129,7 +129,7 @@ contract Wedding{
     
     
     // Accept function
-    function accept(string memory name) 
+    function acceptTheWedding(string memory name) 
         checkWeddingStage(WeddingStatus.Pending,"You are not allowed to accept the invitation anymore.") 
         checkParticipationRecord(name,"You have already confirmed whether you will participate or not.")
         authenticate(name, "This address is not allowed to join the contract") public {
@@ -139,7 +139,7 @@ contract Wedding{
         paticipantCount++;
     }
 
-    function weddingInfo(string memory name) view public returns(string memory, string memory, //Name of the couple
+    function getWeddingInfo(string memory name) view public returns(string memory, string memory, //Name of the couple
                                                string memory, string memory, // Location
                                                string memory, string memory, // Date
                                                string memory, uint, // Num of paticipant
@@ -164,7 +164,7 @@ contract Wedding{
        return listOfGuest;
 
     }
-    
+
     function getWeddingStatus() view private returns (string memory){
       if (weddingStatus == WeddingStatus.Pending)
         return "Pending";
@@ -177,7 +177,7 @@ contract Wedding{
     }
 
     // show guest ticket details
-    function guestTicket(string memory name) view public returns (uint256){
+    function getGuestTicket(string memory name) view public returns (uint256){
         return ticketMapping[name];
     }
     
@@ -205,16 +205,16 @@ contract Wedding{
     }
     
     function getObjectionStatus(string memory name) 
-                                authenticate(name, "Unauthorized!") public view returns (string memory, string memory, uint256){
+                                authenticate(name, "Unauthorized!") public view returns (string memory, string memory, uint256, uint256, uint8){
         
         if (objectionStatus == ObjectionStatus.Pending) {
-            return ("Pending Objection", object.reason, object.numOfPositiveVote);
+            return ("Pending Objection", object.reason, object.numOfPositiveVote, listOfGuest.length, objectionVotingThreshold);
         } else if (objectionStatus == ObjectionStatus.Rejected) {
-            return ("Rejected Objection, Everything is still good!", object.reason, object.numOfPositiveVote);
+            return ("Rejected Objection, Everything is still good!", object.reason, object.numOfPositiveVote, listOfGuest.length, objectionVotingThreshold);
         } else if (objectionStatus == ObjectionStatus.Completed) {
-            return ("Completed Objection, DONE!", object.reason, object.numOfPositiveVote);
+            return ("Completed Objection, DONE!", object.reason, object.numOfPositiveVote, listOfGuest.length, objectionVotingThreshold);
         }
-        return ("Everything is still good, I guess!", "", 0);
+        return ("Everything is still good, I guess!", "", 0, 0, 0);
 
     }
     
@@ -224,7 +224,7 @@ contract Wedding{
         return (votingData[providedName], object.numOfPositiveVote);
     }
 
-   function objectionVoting(string memory name, bool wannaStop)
+   function voteForObjection(string memory name, bool wannaStop)
                               authenticate(name, "You cannot vote with wrong credential") public {            
         
         require(objectionStatus == ObjectionStatus.Pending, "There must be an objection created or not yet terminated to be able to vote!");
@@ -273,7 +273,7 @@ contract Wedding{
     }
 
 
-    function terminate()  public {
+    function terminateTheWedding()  public {
         if  (! (msg.sender == wifeAddress || msg.sender == husbandAddress))
             return ;
        weddingStatus = WeddingStatus.Terminated;
