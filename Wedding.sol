@@ -164,9 +164,12 @@ contract Wedding{
        return listOfGuest;
 
     }
-    function getWeddingStatus() view public returns (string memory){
+    
+    function getWeddingStatus() view private returns (string memory){
       if (weddingStatus == WeddingStatus.Pending)
         return "Pending";
+      if (weddingStatus == WeddingStatus.PendingWithObjection)
+        return "PendingWithObjection";
       if (weddingStatus == WeddingStatus.Completed)
         return "Completed";
 
